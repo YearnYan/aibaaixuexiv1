@@ -1,5 +1,44 @@
 # 错误记录
 
+## [ERR-20260730-014] playwright-wrapper-windows-path
+
+**Logged**: 2026-07-30T20:48:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+Playwright 技能包装脚本存在于 Windows 文件系统，但当前 `bash` 无法识别 `C:/...` 路径。
+
+### Error
+
+```text
+/bin/bash: C:/Users/YearnXu/.codex/skills/playwright/scripts/playwright_cli.sh: No such file or directory
+```
+
+### Context
+
+- `npx` 已安装且可用。
+- 包装脚本实际位于 `C:\Users\YearnXu\.codex\skills\playwright\scripts\playwright_cli.sh`。
+- 当前 `bash` 为 WSL 风格路径解析环境。
+
+### Suggested Fix
+
+在 PowerShell 中使用技能文档允许的 `npx --package @playwright/cli playwright-cli` 方式运行浏览器验证。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `C:/Users/YearnXu/.codex/skills/playwright/scripts/playwright_cli.sh`
+
+### Resolution
+
+- **Resolved**: 2026-07-30T20:52:00+08:00
+- **Notes**: 使用 `npx --package @playwright/cli playwright-cli` 完成桌面与移动端验证，浏览器会话已正常关闭。
+
+---
+
 ## [ERR-20260730-001] imagegen-custom-model-size-validation
 
 **Logged**: 2026-07-30T18:00:00+08:00

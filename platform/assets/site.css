@@ -102,7 +102,7 @@ a { color: inherit; text-decoration: none; }
   z-index: 2;
   width: min(1380px, calc(100% - 64px));
   margin: 0 auto;
-  padding-top: max(12svh, 84px);
+  padding-top: clamp(150px, 20svh, 220px);
 }
 
 .brand-kicker { width: fit-content; margin: 0 0 18px; color: var(--brick-dark); font-size: 14px; font-weight: 900; }
@@ -113,29 +113,7 @@ a { color: inherit; text-decoration: none; }
 .action-button span { margin-left: 10px; }
 .action-secondary { color: var(--ink); border-color: rgba(82,50,29,.3); background: rgba(255,255,255,.82); }
 
-.tool-peek {
-  position: absolute;
-  right: max(32px, calc((100% - 1380px) / 2));
-  bottom: 0;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: auto minmax(220px, 440px) 28px;
-  align-items: center;
-  gap: 18px;
-  min-height: 82px;
-  padding: 14px 22px;
-  color: var(--white);
-  background: var(--ink);
-  border-radius: 8px 8px 0 0;
-}
-.tool-peek span { color: var(--sun-soft); font-size: 12px; font-weight: 900; }
-.tool-peek strong { font-size: 14px; line-height: 1.45; }
-.tool-peek i { font-size: 20px; font-style: normal; text-align: center; }
-
-.tools-section { padding: 104px max(32px, calc((100% - 1380px) / 2)) 120px; background: var(--paper); }
-.section-heading { display: grid; grid-template-columns: 220px minmax(0, 780px); align-items: end; gap: 30px; padding-bottom: 36px; border-bottom: 2px solid var(--ink); }
-.section-heading p { margin: 0; color: var(--brick); font-size: 13px; font-weight: 900; }
-.section-heading h2 { margin: 0; font-size: 40px; line-height: 1.25; letter-spacing: 0; }
+.tools-section { padding: 48px max(32px, calc((100% - 1380px) / 2)) 120px; background: var(--paper); }
 
 .tool-group { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 30px; padding: 54px 0; border-bottom: 1px solid var(--line); }
 .tool-group > header { align-self: start; }
@@ -197,7 +175,7 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 1060px) {
   .hero h1 { font-size: 60px; }
   .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .section-heading, .tool-group { grid-template-columns: 180px minmax(0, 1fr); }
+  .tool-group { grid-template-columns: 180px minmax(0, 1fr); }
 }
 
 @media (max-width: 720px) {
@@ -209,18 +187,13 @@ a { color: inherit; text-decoration: none; }
   .nav-button { min-height: 38px; padding: 0 10px; font-size: 12px; }
   .hero-media { object-position: 61% center; }
   .hero::after { background: rgba(255,250,239,.28); }
-  .hero-content { width: calc(100% - 32px); padding-top: 13svh; }
+  .hero-content { width: calc(100% - 32px); padding-top: 18svh; }
   .brand-kicker { max-width: 88%; font-size: 12px; }
   .hero h1 { font-size: 46px; }
   .hero-lead { margin-top: 18px; font-size: 17px; line-height: 1.65; }
   .hero-actions { flex-direction: column; width: min(100%, 300px); margin-top: 26px; }
   .action-button { min-height: 48px; }
-  .tool-peek { right: 16px; left: 16px; grid-template-columns: auto minmax(0, 1fr) 20px; gap: 10px; min-height: 70px; padding: 10px 13px; }
-  .tool-peek strong { font-size: 12px; }
-  .tools-section { padding: 74px 16px 80px; }
-  .section-heading { display: block; padding-bottom: 24px; }
-  .section-heading p { margin-bottom: 12px; }
-  .section-heading h2 { font-size: 30px; }
+  .tools-section { padding: 24px 16px 80px; }
   .tool-group { display: block; padding: 38px 0; }
   .tool-group > header { margin-bottom: 22px; }
   .tool-group > header h3 { font-size: 24px; }
