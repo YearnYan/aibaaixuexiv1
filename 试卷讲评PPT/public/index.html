@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#173F3B">
+    <meta name="description" content="上传试卷图片、PDF 或 Word，自动生成适合课堂讲评的 16:9 PPT 课件。">
+    <title>试卷变课件 - 教师讲评课件工作台</title>
+    <link rel="stylesheet" href="styles.css?v=20260716-academic-v2">
+    <script>
+        // 共享导航在独立站点中可能不存在：先校验资源类型，避免把 HTML 当成脚本执行。
+        (async () => {
+            try {
+                const response = await fetch('/shared/hzq.js?v=20260630nav2', { method: 'HEAD' });
+                const contentType = response.headers.get('content-type') || '';
+                if (!response.ok || !/(javascript|ecmascript)/i.test(contentType)) return;
+                const script = document.createElement('script');
+                script.src = '/shared/hzq.js?v=20260630nav2';
+                script.onload = () => window.HZQ?.init?.('试卷讲评PPT');
+                document.head.appendChild(script);
+            } catch (_error) {
+                // 独立部署不依赖共享导航，静默降级即可。
+            }
+        })();
+    </script>
+    <script>
+        window.MathJax = {
+            loader: { load: ['[tex]/mhchem'] },
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                packages: { '[+]': ['mhchem'] },
+                processEscapes: true
+            },
+            svg: { fontCache: 'local' },
+            startup: { typeset: false },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+    <script src="academic-math.js?v=20260716-academic-v3" defer></script>
+    <script src="academic-repair.js?v=20260716-academic-v3" defer></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+    <main>
+        <section class="hero" aria-labelledby="pageTitle">
+            <a class="ai-config-entry" href="/ai-config/">
+                <i data-lucide="cable"></i>
+                <span><strong>AI 配置</strong><small>当前运行实例</small></span>
+            </a>
+            <div class="hero-shell">
+                <div class="hero-copy">
+                    <p class="hero-eyebrow">
+                        <span>教师备课工作台</span>
+                        <span aria-hidden="true">EXAM → LESSON</span>
+                    </p>
+                    <h1 class="hero-title" id="pageTitle">
+                        <span>把一份试卷，</span>
+                        <strong>变成一堂能直接讲的课。</strong>
+                    </h1>
+                    <p class="hero-subtitle">
+                        自动识别题干、选项、图形、答案与知识点，按课堂视距重排成 16:9 讲评课件。
+                    </p>
+
+                    <ol class="workflow-rail" aria-label="课件生成流程">
+                        <li><span>01</span><strong>上传</strong><small>原图 / PDF / Word</small></li>
+                        <li><span>02</span><strong>识别</strong><small>题目与图形定位</small></li>
+                        <li><span>03</span><strong>编排</strong><small>课堂讲评结构</small></li>
+                        <li><span>04</span><strong>导出</strong><small>16:9 PPTX</small></li>
+                    </ol>
+                </div>
+
+                <div class="upload-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="panel-kicker">新建讲评课件</p>
+                            <h2>先放入试卷</h2>
+                        </div>
+                        <span class="panel-format">16:9</span>
+                    </div>
+
+                    <div
+                        class="upload-area"
+                        id="uploadArea"
+                        role="group"
+                        aria-label="试卷上传区域"
+                        aria-describedby="uploadHint uploadFileTip"
+                    >
+                        <div class="upload-target" aria-hidden="true">
+                            <i data-lucide="scan-line"></i>
+                            <span class="upload-target-corner corner-a"></span>
+                            <span class="upload-target-corner corner-b"></span>
+                            <span class="upload-target-corner corner-c"></span>
+                            <span class="upload-target-corner corner-d"></span>
+                        </div>
+                        <div class="upload-copy">
+                            <p class="upload-title">拖入试卷，或从电脑选择</p>
+                            <p class="upload-hint" id="uploadHint">
+                                支持 PNG/JPG、PDF、DOC/DOCX；最多 20 个文件，单个不超过 50MB。
+                            </p>
+                        </div>
+
+                        <div class="generation-options" aria-label="课件生成设置">
+                            <label class="switch-option" for="answerVisibilityToggle">
+                                <span class="switch-copy">
+                                    <span class="switch-title">课件内显示正确答案</span>
+                                    <span class="switch-desc">关闭后保留课堂揭晓空间，不标记正确项。</span>
+                                </span>
+                                <input type="checkbox" id="answerVisibilityToggle" checked>
+                                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                            </label>
+                            <label class="switch-option" for="explanationPathToggle">
+                                <span class="switch-copy">
+                                    <span class="switch-title">课件内显示讲解路径</span>
+                                    <span class="switch-desc">开启后展示分步讲解；关闭后优先完整呈现题干、选项和答案。</span>
+                                </span>
+                                <input type="checkbox" id="explanationPathToggle" checked>
+                                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="upload-buttons">
+                            <button class="upload-btn primary" id="fileSelectBtn" type="button">
+                                <i data-lucide="folder-open"></i>
+                                <span>选择试卷</span>
+                            </button>
+                            <button class="upload-btn secondary" id="cameraBtn" type="button">
+                                <i data-lucide="camera"></i>
+                                <span>拍照上传</span>
+                            </button>
+                            <input
+                                type="file"
+                                id="fileInput"
+                                accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,image/png,image/jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                multiple
+                                hidden
+                            >
+                        </div>
+
+                        <p class="upload-file-tip" id="uploadFileTip">
+                            清晰原图或 PDF 能更完整地保留坐标轴、表格与几何辅助线。
+                        </p>
+                    </div>
+
+                    <div class="processing-status" id="processingStatus" style="display: none;" role="status" aria-live="polite" aria-atomic="true">
+                        <span class="processing-symbol" aria-hidden="true">
+                            <span class="processing-spinner"></span>
+                            <i class="processing-error-icon" data-lucide="circle-alert"></i>
+                        </span>
+                        <div class="processing-copy">
+                            <strong class="processing-title">正在制作课件</strong>
+                            <p class="processing-text">AI 正在识别试卷内容...</p>
+                            <div class="processing-actions">
+                                <button class="processing-retry-btn" id="processingRetryBtn" type="button" style="display: none;">
+                                    <i data-lucide="rotate-cw"></i>
+                                    <span class="processing-retry-label">继续修复</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="preview-section" id="previewSection" style="display: none;" aria-labelledby="previewTitle">
+            <div class="preview-header">
+                <div>
+                    <p class="preview-badge">讲评工作台</p>
+                    <h2 class="preview-title" id="previewTitle">逐题检查，再交给课堂</h2>
+                </div>
+                <p class="preview-subtitle">目录负责定位，画布只呈现一张课件；导出结果与当前预览保持一致。</p>
+            </div>
+
+            <div class="preview-container">
+                <aside class="slide-nav" aria-label="课件目录">
+                    <div class="slide-nav-heading">
+                        <p class="slide-nav-title">课件目录</p>
+                        <span id="slideCount">0 张</span>
+                    </div>
+                    <div class="slide-nav-list" id="slideNavList"></div>
+                </aside>
+
+                <div class="stage-column">
+                    <div class="stage-label" aria-hidden="true">
+                        <span>16:9 课堂画布</span>
+                        <span>1600 × 900</span>
+                    </div>
+                    <div class="slide-preview" id="slidePreview" aria-live="polite"></div>
+
+                    <div class="action-buttons" aria-label="课件操作">
+                        <button class="action-btn primary" id="downloadBtn" type="button">
+                            <i data-lucide="download"></i>
+                            <span>下载 PPT 课件</span>
+                        </button>
+                        <button class="action-btn secondary" id="fullscreenBtn" type="button">
+                            <i data-lucide="maximize"></i>
+                            <span>全屏检查</span>
+                        </button>
+                        <button class="action-btn ghost" id="reuploadBtn" type="button">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>更换试卷</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="steps-section" id="steps" aria-labelledby="stepsTitle">
+            <div class="steps-header">
+                <p class="steps-badge">从识别到课堂</p>
+                <h2 class="steps-title" id="stepsTitle">系统替你做排版，判断仍由教师完成</h2>
+                <p>生成后逐题核对图形、答案和解题路径，再下载用于讲评。</p>
+            </div>
+
+            <ol class="steps-grid">
+                <li class="step-card">
+                    <span class="step-num">01</span>
+                    <div><h3 class="step-title">上传原卷</h3><p class="step-desc">尽量使用清晰原图或原始 PDF。</p></div>
+                </li>
+                <li class="step-card">
+                    <span class="step-num">02</span>
+                    <div><h3 class="step-title">逐题核对</h3><p class="step-desc">重点检查图形裁切、正确答案与解析。</p></div>
+                </li>
+                <li class="step-card">
+                    <span class="step-num">03</span>
+                    <div><h3 class="step-title">带入课堂</h3><p class="step-desc">按需隐藏答案，再导出 16:9 PPTX。</p></div>
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <script src="ai-json.js?v=20260721-response-v1" defer></script>
+    <script src="app.js?v=20260721-response-v1" defer></script>
+</body>
+</html>

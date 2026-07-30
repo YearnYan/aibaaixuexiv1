@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="配置 AI 错因判断网站使用的模型服务。">
+  <title>AI 配置 - AI 错因判断</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/settings.css">
+  <script src="/vendor/lucide.min.js" defer></script>
+  <script src="/assets/settings.js" defer></script>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body class="settings-page">
+  <div class="settings-shell">
+    <header class="settings-topbar">
+      <a href="/" class="back-link"><i data-lucide="arrow-left" aria-hidden="true"></i><span>返回错因判断</span></a>
+      <div class="settings-brand"><strong>AI 错因判断</strong><span>模型配置</span></div>
+    </header>
+
+    <main class="settings-main">
+      <section class="settings-intro">
+        <div>
+          <span class="section-kicker">AI 配置</span>
+          <h1>连接你的分析模型</h1>
+          <p>配置保存在当前服务器，密钥不会发送到浏览器，也不会进入诊断报告。</p>
+        </div>
+        <div id="config-state" class="config-state is-unconfigured">
+          <i data-lucide="shield-check" aria-hidden="true"></i>
+          <span><small>密钥状态</small><strong id="key-status">正在读取</strong></span>
+        </div>
+      </section>
+
+      <section class="settings-workspace">
+        <form id="settings-form" class="settings-form" novalidate>
+          <div class="settings-section">
+            <div class="section-title"><span>1</span><div><h2>模型服务</h2><p>选择预设或填写 OpenAI 兼容接口。</p></div></div>
+            <div class="settings-fields two-column">
+              <label>服务提供商
+                <div class="setting-select-wrap">
+                  <select id="provider" name="provider">
+                    <option value="openai">OpenAI</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="qwen">通义千问</option>
+                    <option value="kimi">Kimi</option>
+                    <option value="ollama">Ollama（本地）</option>
+                    <option value="custom">自定义兼容接口</option>
+                  </select>
+                  <i data-lucide="chevron-down" aria-hidden="true"></i>
+                </div>
+              </label>
+              <label>模型名称
+                <input id="model" name="model" type="text" maxlength="100" autocomplete="off" required placeholder="例如 gpt-4.1-mini">
+              </label>
+              <label class="full-field">接口根地址
+                <input id="base-url" name="baseUrl" type="url" maxlength="500" autocomplete="url" required placeholder="https://api.openai.com/v1">
+                <small>填写到 <code>/v1</code>，系统会自动请求 <code>/chat/completions</code>。</small>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="section-title"><span>2</span><div><h2>访问凭据</h2><p>新密钥只在保存时传给服务器。</p></div></div>
+            <div class="settings-fields">
+              <label>API 密钥
+                <div class="password-input">
+                  <input id="api-key" name="apiKey" type="password" maxlength="500" autocomplete="new-password" placeholder="留空表示继续使用已保存的密钥">
+                  <button id="toggle-key" type="button" title="显示密钥" aria-label="显示密钥"><i data-lucide="eye" aria-hidden="true"></i></button>
+                </div>
+              </label>
+              <label class="checkbox-row"><input id="clear-api-key" type="checkbox"><span>清除服务器上已保存的 API 密钥</span></label>
+              <label id="admin-password-field" hidden>配置管理密码
+                <div class="password-input">
+                  <input id="admin-password" type="password" autocomplete="current-password" placeholder="由服务器 ADMIN_PASSWORD 设置">
+                  <button id="toggle-admin" type="button" title="显示管理密码" aria-label="显示管理密码"><i data-lucide="eye" aria-hidden="true"></i></button>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="section-title"><span>3</span><div><h2>分析参数</h2><p>低温度更适合稳定、可复核的错因判断。</p></div></div>
+            <div class="settings-fields parameter-grid">
+              <label>生成温度 <output id="temperature-output" for="temperature">0.2</output>
+                <input id="temperature" name="temperature" type="range" min="0" max="1" step="0.1" value="0.2">
+                <span class="range-labels"><small>稳定 0</small><small>灵活 1</small></span>
+              </label>
+              <label>请求超时（秒）
+                <input id="timeout" name="timeout" type="number" min="10" max="180" step="5" value="90" required>
+                <small>图片与 PDF 视觉分析建议设置为 60 秒以上。</small>
+              </label>
+            </div>
+          </div>
+
+          <footer class="settings-actions">
+            <div id="save-message" class="save-message" role="status" aria-live="polite"></div>
+            <button id="test-button" class="test-button" type="button"><i data-lucide="plug-zap" aria-hidden="true"></i><span>保存并测试</span></button>
+            <button id="save-button" class="save-button" type="submit"><i data-lucide="save" aria-hidden="true"></i><span>保存配置</span></button>
+          </footer>
+        </form>
+
+        <aside class="security-notes" aria-label="配置说明">
+          <div class="security-heading"><i data-lucide="shield" aria-hidden="true"></i><h2>安全与兼容</h2></div>
+          <ul>
+            <li><i data-lucide="key-round" aria-hidden="true"></i><div><strong>密钥不回显</strong><span>浏览器只能获知是否已配置，无法读取保存的明文。</span></div></li>
+            <li><i data-lucide="hard-drive" aria-hidden="true"></i><div><strong>材料不落盘</strong><span>题目与学生答案仅在单次分析请求的内存中处理。</span></div></li>
+            <li><i data-lucide="braces" aria-hidden="true"></i><div><strong>兼容协议</strong><span>接口需支持 OpenAI Chat Completions 与图片输入。</span></div></li>
+            <li><i data-lucide="lock-keyhole" aria-hidden="true"></i><div><strong>公网部署</strong><span>必须设置 ADMIN_PASSWORD 并通过 HTTPS 访问。</span></div></li>
+          </ul>
+          <div class="endpoint-preview"><small>实际请求地址</small><code id="endpoint-preview">/chat/completions</code></div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

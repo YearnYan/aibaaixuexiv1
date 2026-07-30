@@ -1,0 +1,19 @@
+{
+  "name": "k12-teaching-aid-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build:cloudflare": "node scripts/build-cloudflare-assets.mjs",
+    "check": "node --check server.js && node --check src/worker.js && node --check public/app.js && node --check public/admin.js && node --check public/scripts/admin-common.js && node --check public/scripts/points-admin.js && node --check public/scripts/ai-config-admin.js",
+    "smoke:worker": "node scripts/smoke-worker.mjs",
+    "deploy:dry": "npm run build:cloudflare && npx wrangler deploy --dry-run",
+    "deploy": "npm run build:cloudflare && npx wrangler deploy"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

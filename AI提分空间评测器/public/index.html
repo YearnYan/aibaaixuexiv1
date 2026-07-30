@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI提分空间测评</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2312452d'/%3E%3Cpath d='M8 20h16M10 16h12M12 12h8' stroke='%23fff7e8' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/styles.css" />
+      <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="intro-panel" aria-labelledby="pageTitle">
+        <div class="brand-block">
+          <h1 id="pageTitle">AI提分空间测评</h1>
+          <p>基于学习表现与目标差距，AI为孩子生成个性化提分路径</p>
+        </div>
+
+        <form class="form-card" id="assessmentForm">
+          <div class="form-head">
+            <strong>填写孩子情况</strong>
+            <span>约1分钟</span>
+          </div>
+
+          <div class="field-grid">
+            <label class="field">
+              <span><b>*</b> 年级</span>
+              <select name="grade" required>
+                <option>小学三年级</option>
+                <option>小学四年级</option>
+                <option>小学五年级</option>
+                <option>小学六年级</option>
+                <option>初一</option>
+                <option selected>初二</option>
+                <option>初三</option>
+                <option>高一</option>
+                <option>高二</option>
+                <option>高三</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span><b>*</b> 科目</span>
+              <select name="subject" required>
+                <option selected>数学</option>
+                <option>语文</option>
+                <option>英语</option>
+                <option>物理</option>
+                <option>化学</option>
+                <option>生物</option>
+                <option>历史</option>
+                <option>地理</option>
+                <option>政治</option>
+              </select>
+            </label>
+
+            <label class="field score-field">
+              <span><b>*</b> 试卷满分</span>
+              <input name="maxScore" type="number" min="1" max="1000" value="100" required />
+              <i>分</i>
+            </label>
+
+            <label class="field score-field">
+              <span><b>*</b> 当前分数</span>
+              <input name="currentScore" type="number" min="0" max="1000" value="68" required />
+              <i>分</i>
+            </label>
+
+            <label class="field score-field">
+              <span><b>*</b> 目标分数</span>
+              <input name="targetScore" type="number" min="0" max="1000" value="85" required />
+              <i>分</i>
+            </label>
+          </div>
+
+          <fieldset class="choice-group">
+            <legend><b>*</b> 学习表现</legend>
+            <div class="pill-grid">
+              <label>
+                <input type="radio" name="performance" value="基础薄弱，跟不上进度" />
+                <span>基础薄弱，跟不上进度</span>
+              </label>
+              <label>
+                <input type="radio" name="performance" value="中等水平，波动较大" checked />
+                <span>中等水平，波动较大</span>
+              </label>
+              <label>
+                <input type="radio" name="performance" value="成绩中上，寻求突破" />
+                <span>成绩中上，寻求突破</span>
+              </label>
+              <label>
+                <input type="radio" name="performance" value="优势明显，冲击高分" />
+                <span>优势明显，冲击高分</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>家长最焦虑的问题 <em>（可选填）</em></legend>
+            <div class="check-grid">
+              <label>
+                <input type="checkbox" name="concerns" value="基础不牢，概念易错" />
+                <span>基础不牢，概念易错</span>
+              </label>
+              <label>
+                <input type="checkbox" name="concerns" value="粗心失分，马虎大意" />
+                <span>粗心失分，马虎大意</span>
+              </label>
+              <label>
+                <input type="checkbox" name="concerns" value="题型方法不会用" />
+                <span>题型方法不会用</span>
+              </label>
+              <label>
+                <input type="checkbox" name="concerns" value="阅读理解/应用题困难" />
+                <span>阅读理解/应用题困难</span>
+              </label>
+              <label>
+                <input type="checkbox" name="concerns" value="考试时间不够用" />
+                <span>考试时间不够用</span>
+              </label>
+              <label>
+                <input type="checkbox" name="concerns" value="学习动力不足，注意力不集中" />
+                <span>学习动力不足，注意力不集中</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="upload-block">
+            <label class="upload-title" for="fileInput">上传试卷/作业</label>
+            <label class="drop-zone" id="dropZone" for="fileInput">
+              <i data-lucide="upload"></i>
+              <strong>上传试卷/作业</strong>
+              <span>支持考试试卷、近期作业、错题照片</span>
+              <small>PDF / Word / PNG / JPG</small>
+            </label>
+            <input id="fileInput" name="files" type="file" multiple accept=".pdf,.doc,.docx,.txt,.md,.png,.jpg,.jpeg" />
+            <div class="file-list" id="fileList" aria-live="polite"></div>
+          </div>
+
+          <button class="submit-button" type="submit" id="submitButton">
+            <i data-lucide="sparkles"></i>
+            <span>生成提分空间测评</span>
+          </button>
+
+          <p class="trust-line">
+            <i data-lucide="shield-check"></i>
+            初步判断，不承诺保分
+          </p>
+        </form>
+      </section>
+
+      <section class="result-paper" aria-labelledby="resultTitle">
+        <div class="paper-frame">
+          <header class="result-header">
+            <div class="title-line">
+              <span></span>
+              <h2 id="resultTitle">提分空间测评结果 <small>（初步）</small></h2>
+              <span></span>
+            </div>
+            <div class="meta-row">
+              <p>年级：<strong id="metaGrade">初二</strong></p>
+              <p>科目：<strong id="metaSubject">数学</strong></p>
+              <p>满分：<strong><span id="metaMax">100</span></strong></p>
+              <p>当前分数：<strong><span id="metaCurrent">68</span>/<span id="metaCurrentMax">100</span></strong></p>
+              <p>目标分数：<strong><span id="metaTarget">85</span>/<span id="metaTargetMax">100</span></strong></p>
+              <p>测评时间：<strong id="metaDate">2024-05-20</strong></p>
+            </div>
+          </header>
+
+          <section class="level-strip">
+            <div>
+              <span>当前分数层级</span>
+              <strong id="levelLabel">中等偏下</strong>
+            </div>
+            <p id="levelDescription">已掌握基础知识点的60%-70%，具备提升空间。通过针对性补强与方法优化，有望实现稳步提分。</p>
+          </section>
+
+          <section class="gap-section">
+            <div class="score-visual">
+              <div class="score-badges">
+                <span class="gap-badge">差距 <strong id="badgeGap">17</strong>分</span>
+              </div>
+              <div class="score-track" id="scoreTrack">
+                <div class="track-current"></div>
+                <div class="track-gap"></div>
+                <div class="track-rest"></div>
+                <span class="marker current-marker"></span>
+                <span class="marker target-marker"></span>
+              </div>
+              <div class="track-labels">
+                <span id="currentMarkerText">当前 68</span>
+                <span id="targetMarkerText">目标 85</span>
+              </div>
+              <div class="stage-cards" id="stageCards"></div>
+            </div>
+          </section>
+
+          <section class="report-grid">
+            <div class="mini-panel">
+              <h3>优先提分方向 <small>（按优先级）</small></h3>
+              <div class="priority-list" id="priorityList"></div>
+            </div>
+            <div class="mini-panel plan-panel">
+              <h3>30天提分建议</h3>
+              <div class="week-list" id="weekList"></div>
+            </div>
+          </section>
+
+          <section class="report-cta">
+            <div>
+              <i data-lucide="file-text"></i>
+              <p>
+                <strong>查看完整报告</strong>
+                <span>展开完整测评结论、提分路径与数据分析详情</span>
+              </p>
+            </div>
+            <button type="button" id="openReportButton">
+              查看完整报告
+              <i data-lucide="chevron-right"></i>
+            </button>
+          </section>
+
+          <footer class="result-footer">
+            <span>初步判断，不承诺保分</span>
+            <div>
+              <button type="button" id="copyButton"><i data-lucide="copy"></i>复制结果</button>
+              <button type="button" id="downloadButton"><i data-lucide="download"></i>下载报告</button>
+            </div>
+          </footer>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="report-dialog" id="reportDialog">
+      <div class="dialog-shell">
+        <header>
+          <div>
+            <span>AI提分空间测评</span>
+            <h2>完整报告详情</h2>
+          </div>
+          <button type="button" class="icon-button" id="closeReportButton" aria-label="关闭完整报告">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <div class="dialog-body" id="dialogBody"></div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="/vendor/html2canvas/html2canvas.min.js"></script>
+    <script src="/vendor/jspdf/jspdf.umd.min.js"></script>
+    <script src="/vendor/lucide/lucide.js"></script>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

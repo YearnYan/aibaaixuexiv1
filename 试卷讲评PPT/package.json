@@ -1,0 +1,17 @@
+{
+  "name": "sjjpppt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "试卷讲评PPT生成器（含 OpenAI SDK 后端代理）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/ai-json.test.js && node tests/academic-math.test.js && node tests/academic-repair.test.js && node tests/ppt-content-contract.test.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.77.0"
+  }
+}

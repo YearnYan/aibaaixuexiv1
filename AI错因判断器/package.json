@@ -1,0 +1,38 @@
+{
+  "name": "ai-error-diagnosis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "面向教师与学生的 AI 错因判断工具",
+  "main": "server/app.js",
+  "scripts": {
+    "dev": "node --watch server/app.js",
+    "start": "node server/app.js",
+    "test": "node --test --test-timeout=60000",
+    "check": "node --check server/app.js && node --check server/ai-client.js && node --check server/config-store.js && node --check server/file-parser.js && node --check server/math-content.js && node --check server/report-export.js && node --check server/schemas.js && node --check server/word-math.js && node --check public/assets/app.js && node --check public/assets/settings.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "@xmldom/xmldom": "^0.8.13",
+    "docx": "^9.7.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "jszip": "^3.10.1",
+    "katex": "^0.17.0",
+    "lucide": "^0.468.0",
+    "mammoth": "^1.10.0",
+    "mathjax-full": "^3.2.1",
+    "mathml2omml": "^0.5.0",
+    "multer": "^2.0.2",
+    "pdfjs-dist": "^5.4.296",
+    "playwright-core": "^1.61.1",
+    "word-extractor": "^1.0.4",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}

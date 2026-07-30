@@ -1,0 +1,15 @@
+node_modules/
+.playwright-cli/
+.agents/
+.learnings/
+# 用户提供的只读参考项目，不纳入当前产品构建与提交。
+/赛博出卷机/
+output/
+tmp/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+*.log
+*.tmp
+.DS_Store

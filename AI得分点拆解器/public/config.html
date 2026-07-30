@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="配置 AI 得分点拆解网站使用的模型和接口。">
+  <title>AI 配置 - AI 得分点拆解</title>
+  <link rel="icon" href="/icons/list-checks.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css?v=20260717-7">
+  <script src="/config.js" defer></script>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+<body class="config-page">
+  <main class="config-shell surface">
+    <header class="config-header">
+      <a class="back-link" href="/">
+        <span class="lucide-icon icon-arrow-left" aria-hidden="true"></span>
+        返回得分点拆解
+      </a>
+      <div class="config-heading-row">
+        <div>
+          <h1>AI 配置</h1>
+          <p>连接用于读取题目资料和生成得分点报告的模型</p>
+        </div>
+        <span class="connection-state" id="connectionState">
+          <i aria-hidden="true"></i><span>正在读取配置</span>
+        </span>
+      </div>
+    </header>
+
+    <form class="config-form" id="configForm" novalidate>
+      <div class="config-field wide-field">
+        <label for="protocol">接口协议</label>
+        <div class="select-wrap">
+          <select id="protocol" name="protocol">
+            <option value="responses">OpenAI Responses API（推荐）</option>
+            <option value="chat-completions">兼容 Chat Completions</option>
+          </select>
+          <span class="lucide-icon icon-chevron-down" aria-hidden="true"></span>
+        </div>
+        <small id="protocolHint">支持直接读取 PDF、Word 和图片，并使用严格结构化输出。</small>
+      </div>
+
+      <div class="config-field wide-field">
+        <label for="baseUrl">API 地址</label>
+        <input id="baseUrl" name="baseUrl" type="url" value="https://api.openai.com/v1" autocomplete="url" spellcheck="false">
+        <small>填写根地址，例如 https://api.openai.com/v1，不要附加具体接口路径。</small>
+      </div>
+
+      <div class="config-field">
+        <label for="model">模型</label>
+        <input id="model" name="model" type="text" value="gpt-5.6" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="config-field">
+        <label for="timeoutMs">超时时间</label>
+        <div class="number-wrap config-number">
+          <input id="timeoutMs" name="timeoutMs" type="number" min="10000" max="180000" step="1000" value="120000">
+          <span aria-hidden="true">毫秒</span>
+        </div>
+      </div>
+
+      <div class="config-field wide-field">
+        <label for="apiKey">API 密钥</label>
+        <div class="secret-wrap">
+          <input id="apiKey" name="apiKey" type="password" autocomplete="new-password" placeholder="首次配置时填写 API 密钥">
+          <button class="icon-button secret-toggle" id="secretToggle" type="button" aria-label="显示密钥" title="显示或隐藏密钥">
+            <span class="lucide-icon icon-eye" aria-hidden="true"></span>
+          </button>
+        </div>
+        <small id="keyHint">密钥只发送到本服务端，加密保存在本机，不会回显到浏览器。</small>
+      </div>
+
+      <div class="config-actions wide-field">
+        <button class="secondary-button" id="testButton" type="button">
+          <span class="lucide-icon icon-plug" aria-hidden="true"></span>
+          测试连接
+        </button>
+        <button class="primary-button" id="saveButton" type="submit">
+          <span class="lucide-icon icon-save" aria-hidden="true"></span>
+          保存配置
+        </button>
+      </div>
+    </form>
+
+    <aside class="security-note">
+      <span class="lucide-icon icon-shield" aria-hidden="true"></span>
+      <div>
+        <strong>配置安全</strong>
+        <p>生产环境请设置 <code>ADMIN_PASSWORD</code>。上传资料仅在内存中处理，分析完成后立即释放。</p>
+      </div>
+    </aside>
+  </main>
+
+  <dialog class="admin-dialog" id="adminDialog">
+    <form id="adminForm">
+      <span class="dialog-icon" aria-hidden="true"><span class="lucide-icon icon-key"></span></span>
+      <h2>输入管理密码</h2>
+      <p>该配置页已启用服务端保护。</p>
+      <label for="adminPassword">管理密码</label>
+      <input id="adminPassword" type="password" autocomplete="current-password" required>
+      <p class="dialog-error" id="adminError" role="alert"></p>
+      <button class="primary-button" type="submit">进入配置</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

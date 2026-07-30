@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 配置后台｜艾爸AI学习</title>
+    <link rel="icon" type="image/jpeg" href="./assets/logo.jpg" />
+    <link rel="stylesheet" href="./assets/site.css" />
+    <link rel="stylesheet" href="./assets/admin.css" />
+  </head>
+  <body class="admin-page">
+    <header class="admin-header">
+      <a class="admin-brand" href="./index.html">
+        <img src="./assets/logo.jpg" alt="艾爸AI学习" />
+        <span><strong>艾爸AI学习</strong><small>AI 配置后台</small></span>
+      </a>
+      <div class="admin-header-actions">
+        <span class="admin-user-badge" id="adminUserBadge">未登录</span>
+        <button class="admin-button admin-button-danger" id="adminLogoutButton" type="button" hidden>退出</button>
+        <a class="admin-button admin-button-light" href="./index.html">返回主页</a>
+        <button class="admin-button admin-button-solid" id="saveConfigButton" type="button" disabled>保存配置</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="admin-intro">
+        <div><p class="admin-kicker">MODEL CONNECTIONS</p><h1>AI 配置后台</h1></div>
+        <p>分别维护规则确认与图片生成接口池。保存后继续由现有后端负责校验、轮询和即时生效。</p>
+      </section>
+      <p class="admin-status" id="adminStatus" role="status" aria-live="polite">正在检查管理员身份</p>
+
+      <section class="admin-auth-panel" id="adminAuthPanel">
+        <h2>管理员登录</h2>
+        <p>首个注册账号将自动成为管理员；已有账号时请直接登录。</p>
+        <div class="admin-auth-form">
+          <label class="admin-field"><span>管理员账号</span><input id="adminUsername" type="text" autocomplete="username" /></label>
+          <label class="admin-field"><span>密码</span><input id="adminPassword" type="password" autocomplete="current-password" /></label>
+          <div class="admin-auth-actions">
+            <button class="admin-button admin-button-solid" id="adminLoginButton" type="button">登录</button>
+            <button class="admin-button admin-button-light" id="adminRegisterButton" type="button">注册首个管理员</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-workspace" id="adminWorkspace" hidden>
+        <div class="admin-toolbar">
+          <div><h2>接口池配置</h2><p>每个接口可配置多个密钥，后端按原有顺序和轮询规则使用。</p></div>
+          <button class="admin-button admin-button-light" id="reloadConfigButton" type="button">重新读取</button>
+        </div>
+
+        <section class="config-channel">
+          <div class="config-channel-head">
+            <div><h2>生成规则确认接口</h2><p>用于解析需求、知识库与参考图，生成出图规划。</p></div>
+            <button class="admin-button admin-button-light" type="button" data-add-entry="rule">新增 URL</button>
+          </div>
+          <div class="provider-list" id="ruleProviderList"></div>
+        </section>
+
+        <section class="config-channel">
+          <div class="config-channel-head">
+            <div><h2>AI 生图接口</h2><p>用于最终图片生成，支持多个兼容接口与密钥池。</p></div>
+            <div class="config-channel-actions">
+              <label class="compact-select"><span>分辨率</span><select id="imageResolution"><option value="4k">4K</option><option value="standard">标准</option></select></label>
+              <button class="admin-button admin-button-light" type="button" data-add-entry="image">新增 URL</button>
+            </div>
+          </div>
+          <div class="provider-list" id="imageProviderList"></div>
+        </section>
+      </section>
+    </main>
+
+    <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
+    <script type="module" src="./scripts/ai-config-admin.js"></script>
+  </body>
+</html>

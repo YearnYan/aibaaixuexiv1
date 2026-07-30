@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="上传题目资料和学生答案，使用 AI 拆解得分点并逐项评分。">
+  <title>AI 得分点拆解</title>
+  <link rel="icon" href="/icons/list-checks.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/styles.css?v=20260718-9">
+  <script src="/vendor/katex/katex.min.js" defer></script>
+  <script src="/vendor/katex/contrib/mhchem.min.js" defer></script>
+  <script src="/vendor/katex/contrib/auto-render.min.js" defer></script>
+  <script src="/vendor/html2pdf.bundle.min.js" defer></script>
+  <script src="/vendor/html2canvas.min.js" defer></script>
+  <script src="/vendor/docx.iife.js" defer></script>
+  <script src="/academic-rendering.js?v=20260718-9" defer></script>
+  <script src="/report-export.js?v=20260718-9" defer></script>
+  <script src="/app.js?v=20260718-9" defer></script>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+<body>
+  <main class="app-shell">
+    <aside class="input-panel surface" aria-labelledby="app-title">
+      <a class="icon-button settings-link" href="/config" aria-label="打开 AI 配置" title="AI 配置">
+        <span class="lucide-icon icon-settings" aria-hidden="true"></span>
+      </a>
+
+      <header class="brand-block">
+        <h1 id="app-title">AI得分点拆解</h1>
+        <p>看清每一分怎么拿</p>
+      </header>
+
+      <form id="analysisForm" novalidate>
+        <div class="form-scroll">
+          <div class="field-group">
+            <label for="subject">学科</label>
+            <div class="select-wrap">
+              <select id="subject" name="subject" aria-label="选择学科">
+              <optgroup label="小学">
+                <option>小学语文</option>
+                <option>小学数学</option>
+                <option>小学英语</option>
+              </optgroup>
+              <optgroup label="初中">
+                <option>初中语文</option>
+                <option>初中数学</option>
+                <option>初中英语</option>
+                <option>初中物理</option>
+                <option>初中化学</option>
+                <option>初中历史</option>
+                <option>初中道德与法治</option>
+                <option>初中地理</option>
+                <option>初中生物</option>
+              </optgroup>
+              <optgroup label="高中">
+                <option selected>高中语文</option>
+                <option>高中数学</option>
+                <option>高中英语</option>
+                <option>高中物理</option>
+                <option>高中化学</option>
+                <option>高中历史</option>
+                <option>高中思想政治</option>
+                <option>高中地理</option>
+                <option>高中生物</option>
+              </optgroup>
+              </select>
+              <span class="lucide-icon icon-chevron-down" aria-hidden="true"></span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="totalScore">题目总分</label>
+            <div class="number-wrap">
+              <input id="totalScore" name="totalScore" type="number" min="1" max="150" step="1" value="12" inputmode="numeric">
+              <span aria-hidden="true">分</span>
+            </div>
+          </div>
+
+          <div class="upload-field">
+            <label class="upload-label" for="questionFile">上传题目</label>
+            <label class="upload-zone" id="questionZone" for="questionFile" tabindex="0">
+              <input id="questionFile" name="questionFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt,.md" hidden>
+              <span class="upload-icon" aria-hidden="true"><span class="lucide-icon icon-file-up"></span></span>
+              <span class="upload-main">点击或拖拽文件到此处上传</span>
+              <span class="upload-types">PDF / Word / PNG / JPG</span>
+              <span class="file-summary" aria-live="polite"></span>
+              <button class="remove-file" type="button" aria-label="移除题目文件" title="移除文件">
+                <span class="lucide-icon icon-x" aria-hidden="true"></span>
+              </button>
+            </label>
+          </div>
+
+          <div class="upload-field answer-upload">
+            <label class="upload-label" for="answerFile">学生答案（可选）</label>
+            <label class="upload-zone" id="answerZone" for="answerFile" tabindex="0">
+              <input id="answerFile" name="answerFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt,.md" hidden>
+              <span class="upload-icon muted-icon" aria-hidden="true"><span class="lucide-icon icon-file-up"></span></span>
+              <span class="upload-main">点击或拖拽文件到此处上传</span>
+              <span class="upload-types">PDF / Word / PNG / JPG</span>
+              <span class="file-summary" aria-live="polite"></span>
+              <button class="remove-file" type="button" aria-label="移除学生答案文件" title="移除文件">
+                <span class="lucide-icon icon-x" aria-hidden="true"></span>
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <button class="analyze-button" id="analyzeButton" type="submit">
+          <span class="button-label">拆解得分点</span>
+          <span class="loading-content" aria-hidden="true">
+            <span class="lucide-icon icon-loader"></span>
+            正在分析
+          </span>
+        </button>
+      </form>
+    </aside>
+
+    <section class="report-panel surface" id="reportPanel" aria-labelledby="report-title" aria-busy="false">
+      <div class="report-heading-row">
+        <h2 id="report-title">得分点报告</h2>
+        <div class="report-actions" aria-label="下载完整报告">
+          <button class="report-action-button" id="downloadPdfButton" type="button" disabled>
+            <span class="lucide-icon icon-file-down" aria-hidden="true"></span>
+            <span>下载 PDF</span>
+          </button>
+          <button class="report-action-button" id="downloadWordButton" type="button" disabled>
+            <span class="lucide-icon icon-file-text" aria-hidden="true"></span>
+            <span>下载 Word</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="report-overview">
+        <article class="question-preview">
+          <h3>题目预览</h3>
+          <p id="questionPreview">阅读下面的文言文，完成后面的问题。（12分）
+臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。
+先帝不以臣卑鄙，猥自枉屈，三顾臣于草庐之中，咨臣以当世之事，
+由是感激，遂许先帝以驱驰。
+　　　　　　　　—— 诸葛亮《出师表》节选
+
+题目：结合选文内容，分析诸葛亮“感激先帝”的原因。（12分）</p>
+        </article>
+
+        <div class="score-summary" aria-label="总分概览">
+          <div class="score-total">
+            <strong id="earnedScore">8</strong>
+            <span>/</span>
+            <span id="totalScoreDisplay">12 分</span>
+          </div>
+          <div class="score-split">
+            <div>
+              <span id="earnedLabel">已获得</span>
+              <strong class="earned-value"><b id="earnedScoreSmall">8</b><span id="earnedScoreUnit">分</span></strong>
+            </div>
+            <div>
+              <span id="missingLabel">待补充</span>
+              <strong class="missing-value"><b id="missingScore">4</b><span id="missingScoreUnit">分</span></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="diagnosis-section" aria-labelledby="diagnosis-title">
+        <div class="diagnosis-heading">
+          <div>
+            <span class="diagnosis-kicker">六维阅卷</span>
+            <h3 id="diagnosis-title">评分诊断</h3>
+          </div>
+          <p id="analysisMode">依据题目与作答逐项分析</p>
+        </div>
+
+        <ol class="score-points" id="scorePoints" aria-label="六维评分诊断">
+          <li class="score-point-row covered order-0" data-initial-label="答题对象" data-initial-score="1" data-initial-status="covered"></li>
+          <li class="score-point-row covered order-1" data-initial-label="核心结论" data-initial-score="2" data-initial-status="covered"></li>
+          <li class="score-point-row missing order-2" data-initial-label="关键依据" data-initial-score="3" data-initial-status="missing"></li>
+          <li class="score-point-row covered order-3" data-initial-label="推理步骤" data-initial-score="3" data-initial-status="covered"></li>
+          <li class="score-point-row partial order-4" data-initial-label="关键词" data-initial-score="2" data-initial-status="partial"></li>
+          <li class="score-point-row covered order-5" data-initial-label="格式要求" data-initial-score="1" data-initial-status="compliant"></li>
+        </ol>
+      </section>
+
+      <div class="revision-advice">
+        <span class="advice-icon" aria-hidden="true"><span class="lucide-icon icon-lightbulb"></span></span>
+        <strong id="adviceLabel">修改建议：</strong>
+        <p id="revisionAdvice">补充关键依据，并写清推理过程</p>
+      </div>
+
+      <p class="review-note" id="reviewNote">AI评分结果需教师复核</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XX天提分行动计划器</title>
+    <link rel="stylesheet" href="/styles.css" />
+      <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div>
+            <h1>XX天提分行动计划器</h1>
+            <p>基于试卷分析 · 科学规划 · 每天进步</p>
+          </div>
+        </div>
+        <div class="trust-badge">
+          <span class="shield-icon" aria-hidden="true"></span>
+          <span>专注学习规划</span>
+          <strong>让提升看得见</strong>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="input-panel" aria-label="生成提分行动计划">
+          <form id="plannerForm">
+            <div class="step-title">
+              <span>1</span>
+              <h2>上传试卷或作业文件</h2>
+            </div>
+
+            <label class="upload-zone" id="uploadZone" for="fileInput">
+              <input id="fileInput" name="files" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt" multiple />
+              <span class="upload-cloud" aria-hidden="true"><i></i></span>
+              <strong>拖拽文件到此处，或点击上传</strong>
+              <small>支持格式： PDF / Word / PNG / JPG</small>
+            </label>
+
+            <div class="file-list" id="fileList" hidden></div>
+
+            <div class="step-title info-title">
+              <span>2</span>
+              <h2>请输入基本信息</h2>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>年级</span>
+                <select name="grade" id="grade">
+                  <option>高一</option>
+                  <option selected>高二</option>
+                  <option>高三</option>
+                  <option>初一</option>
+                  <option>初二</option>
+                  <option>初三</option>
+                  <option>小学高年级</option>
+                </select>
+              </label>
+              <label>
+                <span>科目</span>
+                <select name="subject" id="subject">
+                  <option selected>数学</option>
+                  <option>语文</option>
+                  <option>英语</option>
+                  <option>物理</option>
+                  <option>化学</option>
+                  <option>生物</option>
+                  <option>历史</option>
+                  <option>地理</option>
+                  <option>政治</option>
+                </select>
+              </label>
+              <label class="form-span">
+                <span>满分分数</span>
+                <div class="unit-input">
+                  <input name="maxScore" id="maxScore" type="number" min="1" max="1000" value="150" />
+                  <em>分</em>
+                </div>
+              </label>
+              <label>
+                <span>当前分数 <small id="currentMaxHint">（满分 150 分）</small></span>
+                <div class="unit-input">
+                  <input name="currentScore" id="currentScore" type="number" min="0" max="150" value="92" />
+                  <em>分</em>
+                </div>
+              </label>
+              <label>
+                <span>目标分数 <small id="targetMaxHint">（满分 150 分）</small></span>
+                <div class="unit-input">
+                  <input name="targetScore" id="targetScore" type="number" min="0" max="150" value="120" />
+                  <em>分</em>
+                </div>
+              </label>
+              <label>
+                <span>计划天数</span>
+                <div class="unit-input">
+                  <input name="planDays" id="planDays" type="number" min="1" max="120" value="30" />
+                  <em>天</em>
+                </div>
+              </label>
+              <label>
+                <span>每天学习时间</span>
+                <div class="unit-input">
+                  <input name="dailyHours" id="dailyHours" type="number" min="0.5" max="12" step="0.5" value="2" />
+                  <em>小时</em>
+                </div>
+              </label>
+            </div>
+
+            <button class="generate-button" id="generateButton" type="submit">
+              <span class="magic-icon" aria-hidden="true"></span>
+              <strong>生成提分行动计划</strong>
+            </button>
+
+            <p class="privacy-note">
+              <span class="lock-icon" aria-hidden="true"></span>
+              文件仅用于生成学习分析，不会被留存，请放心上传
+            </p>
+          </form>
+        </section>
+
+        <section class="report-panel" aria-label="学习分析报告">
+          <div class="report-header">
+            <div class="report-title">
+              <span class="report-icon" aria-hidden="true"></span>
+              <h2>学习分析报告</h2>
+            </div>
+            <time id="generatedAt">报告生成时间：2024-05-20 10:30</time>
+          </div>
+
+          <div class="goal-banner">
+            <p>
+              目标：在 <strong id="bannerDays">30</strong> 天内从
+              <strong class="hot" id="bannerCurrent">92</strong> 分提升至
+              <strong class="hot" id="bannerTarget">120</strong> 分
+            </p>
+            <strong class="gap-text">目标分差： <span id="bannerGap">28</span> 分</strong>
+          </div>
+
+          <article class="score-card">
+            <h3>目标分差拆解</h3>
+            <div class="score-equation">
+              <div class="score-box green">
+                <span>当前分数</span>
+                <strong id="scoreCurrent">92</strong>
+              </div>
+              <b>−</b>
+              <div class="score-box red-muted">
+                <span>目标分数</span>
+                <strong id="scoreTarget">120</strong>
+              </div>
+              <b>=</b>
+              <div class="score-box red">
+                <span>目标分差</span>
+                <strong id="scoreGap">28</strong>
+              </div>
+              <div class="daily-gain">
+                <span>30天平均每天需提升</span>
+                <strong><span id="dailyGain">0.93</span> 分</strong>
+              </div>
+              <div class="progress-block">
+                <div>
+                  <strong>整体进度</strong>
+                  <span id="progressText">已完成 0 天 / 30 天</span>
+                </div>
+                <div class="progress-track">
+                  <span id="progressFill" style="width: 0%"></span>
+                  <em id="progressPercent">0%</em>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="report-grid">
+            <article class="analysis-card weak-card">
+              <h3>试卷薄弱点识别 <small>（基于错题分析）</small></h3>
+              <div class="weak-list" id="weakList"></div>
+              <p id="weakSummary">共失分 58 分，主要集中在立体几何和函数与导数</p>
+            </article>
+
+            <article class="analysis-card weekly-card">
+              <h3>每周提升重点</h3>
+              <div class="timeline" id="weeklyFocus"></div>
+            </article>
+          </div>
+
+          <article class="analysis-card daily-card">
+            <h3>每日学习动作 <small>（示例：第1周）</small></h3>
+            <div class="day-grid" id="dailyActions"></div>
+          </article>
+
+          <div class="report-grid bottom-grid">
+            <article class="analysis-card review-card">
+              <h3>错题复盘安排</h3>
+              <div class="review-flow" id="reviewSchedule"></div>
+            </article>
+
+            <article class="analysis-card checklist-card">
+              <div class="checklist-head">
+                <h3>执行检查表 <small>（每日自检）</small></h3>
+                <span>今日完成度</span>
+              </div>
+              <div class="checklist-content">
+                <div class="checklist-items" id="checklistItems"></div>
+                <div class="donut" aria-label="今日完成度 0%">
+                  <span id="donutValue">0%</span>
+                </div>
+              </div>
+              <p id="checklistDone">完成 0 / 4 项</p>
+            </article>
+          </div>
+
+          <button class="full-report-button" id="openFullReport" type="button">
+            <strong><span class="doc-icon" aria-hidden="true"></span>查看完整报告</strong>
+          </button>
+
+          <div class="status-line" id="statusLine" role="status"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <aside class="full-report-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <span>完整学习诊断</span>
+            <h2 id="modalTitle">XX天提分行动计划详情</h2>
+          </div>
+          <div class="modal-actions">
+            <button class="download-report" id="downloadReport" type="button">下载PDF报告</button>
+            <button class="modal-close" id="closeModal" type="button" aria-label="关闭">×</button>
+          </div>
+        </div>
+        <div class="modal-body" id="fullReportContent"></div>
+      </aside>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

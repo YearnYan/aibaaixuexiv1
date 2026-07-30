@@ -1,0 +1,22 @@
+[Unit]
+Description=教辅资料生成器
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jiaofu
+Group=jiaofu
+WorkingDirectory=/www/wwwroot/jiaofu.jiaoshiai.top
+EnvironmentFile=/www/wwwroot/jiaofu.jiaoshiai.top/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /www/wwwroot/jiaofu.jiaoshiai.top/server.js
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

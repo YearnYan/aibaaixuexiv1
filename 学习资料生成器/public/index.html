@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="上传图片、PDF 或 Word 教材，生成从理解、练习到复习的完整学习路径。"
+    />
+    <meta name="theme-color" content="#f2f4f1" />
+    <title>学习资料生成器</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a2926'/%3E%3Cpath d='M17 13h25l7 7v31H17z' fill='%23fff'/%3E%3Cpath d='M42 13v9h8' fill='none' stroke='%23ff5c3a' stroke-width='4'/%3E%3Cpath d='M24 31h18M24 39h14' stroke='%231a2926' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M23 46h19' stroke='%23f0dd59' stroke-width='5'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/reader.css" />
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="/export-print.css" />
+      <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+    <header class="topbar" aria-label="顶部导航">
+      <button class="brand" id="brand-home" type="button" aria-label="返回资料输入页">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+        <span class="brand-copy">
+          <strong>学习资料生成器</strong>
+          <small>智能讲义制作</small>
+        </span>
+      </button>
+
+      <div class="topbar-context" aria-label="服务状态">
+        <span class="privacy-chip">资料仅用于本次生成</span>
+        <div class="service-status" id="service-status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-text">正在检查服务</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="view setup-view is-active" id="setup-view" aria-labelledby="setup-title">
+        <div class="setup-layout">
+          <section class="setup-intro" aria-label="讲义结果预览">
+            <div class="intro-heading">
+              <p class="eyebrow">从资料到真正掌握</p>
+              <h1 id="setup-title">把知识变成<br /><span class="hand-highlight">今天能学完</span>的路径</h1>
+              <p class="intro-copy">先知道目标，再看清规则；跟着做几题，最后检查自己会不会。</p>
+            </div>
+
+            <div class="learning-route" aria-label="学习资料包含四类核心任务">
+              <div class="route-item is-current">
+                <span>01</span>
+                <p><strong>本课导航</strong><small>先看目标与知识关系</small></p>
+              </div>
+              <div class="route-line" aria-hidden="true"><i></i></div>
+              <div class="route-item">
+                <span>02</span>
+                <p><strong>重点与策略</strong><small>讲透规则，也讲清怎么用</small></p>
+              </div>
+              <div class="route-line" aria-hidden="true"><i></i></div>
+              <div class="route-item">
+                <span>03</span>
+                <p><strong>例题与练习</strong><small>看完整过程，再独立完成</small></p>
+              </div>
+              <div class="route-line" aria-hidden="true"><i></i></div>
+              <div class="route-item">
+                <span>04</span>
+                <p><strong>掌握证明</strong><small>用可检查成果确认会不会</small></p>
+              </div>
+            </div>
+
+            <div class="lecture-preview" aria-label="生成结果结构预览">
+              <div class="preview-rail" aria-hidden="true">
+                <span class="is-active"></span><span></span><span></span><span></span>
+              </div>
+              <div class="preview-paper">
+                <div class="preview-paper-head">
+                  <span>CLASSROOM LEARNING GUIDE</span>
+                  <b>01</b>
+                </div>
+                <div class="preview-title-line"></div>
+                <div class="preview-title-line is-short"></div>
+                <div class="preview-question">
+                  <span>本课核心问题</span>
+                  <i></i><i></i>
+                </div>
+                <div class="preview-knowledge">
+                  <span>关键判断</span>
+                  <div><i></i><i></i><i></i></div>
+                </div>
+                <div class="preview-footer"><span>重点策略</span><span>例题练习</span><span>掌握证明</span></div>
+              </div>
+              <div class="preview-caption">
+                <span>生成后得到</span>
+                <strong>一份可直接用于课堂和课后的学习讲义</strong>
+                <small>4 个学习步骤 · 规则、示范、练习和检查一页讲清 · 可下载 PDF / Word</small>
+              </div>
+            </div>
+          </section>
+
+          <form class="generator-panel" id="generator-form" novalidate>
+            <div class="panel-heading">
+              <div>
+                <span class="step-label">准备资料</span>
+                <h2>开始制作学习路径</h2>
+                <p>上传资料或直接输入知识点，再设定这次的学习目标。</p>
+              </div>
+              <span class="panel-step">01 / 02</span>
+            </div>
+
+            <div class="source-mode-tabs" role="tablist" aria-label="资料输入方式">
+              <button class="source-mode-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="upload-source-panel" data-source-mode="upload">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h11l5 5v11H4zM15 4v6h6M12 17V9M9 12l3-3 3 3" /></svg>
+                上传资料
+              </button>
+              <button class="source-mode-tab" type="button" role="tab" aria-selected="false" aria-controls="manual-source-panel" data-source-mode="manual">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16zM13 7l4 4M4 12V4h8" /></svg>
+                手动输入
+              </button>
+            </div>
+
+            <div class="source-panel" id="upload-source-panel" role="tabpanel">
+              <label class="dropzone" id="dropzone" for="file-input">
+                <input
+                  id="file-input"
+                  type="file"
+                  name="files"
+                  accept=".png,.jpg,.jpeg,.webp,.pdf,.doc,.docx"
+                  multiple
+                />
+                <span class="upload-glyph" aria-hidden="true">
+                  <svg viewBox="0 0 48 48">
+                    <path d="M10 8h20l8 8v24H10z" />
+                    <path d="M30 8v9h9M24 32V20M19 25l5-5 5 5" />
+                  </svg>
+                </span>
+                <span class="dropzone-copy">
+                  <strong id="upload-action-label">选择或拖入教材</strong>
+                  <small>图片、PDF、Word · 单个不超过 20 MB · 最多 8 份</small>
+                </span>
+                <span class="upload-count" id="file-count" aria-live="polite">尚未选择</span>
+              </label>
+
+              <div class="file-list" id="file-list" aria-live="polite"></div>
+            </div>
+
+            <div class="source-panel manual-source-panel" id="manual-source-panel" role="tabpanel" hidden>
+              <label for="manual-input">知识点或学习内容</label>
+              <textarea
+                id="manual-input"
+                name="manualText"
+                maxlength="12000"
+                placeholder="例如：全等三角形的判定方法、常见题型和易错点"
+              ></textarea>
+              <div class="manual-input-footer">
+                <span>可输入概念、公式、题目或一段需要讲解的内容</span>
+                <strong id="manual-count">0 / 12000</strong>
+              </div>
+            </div>
+
+            <div class="settings-heading">
+              <div>
+                <span class="step-label">设定目标</span>
+                <h2>这次学习要解决什么？</h2>
+              </div>
+              <span class="panel-step">02 / 02</span>
+            </div>
+
+            <div class="settings-grid">
+              <label class="field">
+                <span>学习阶段</span>
+                <span class="select-wrap">
+                  <select name="grade" id="grade-select">
+                    <option>小学低年级</option>
+                    <option>小学高年级</option>
+                    <option selected>初中</option>
+                    <option>高中</option>
+                    <option>大学及以上</option>
+                  </select>
+                </span>
+              </label>
+
+              <label class="field">
+                <span>学科</span>
+                <span class="select-wrap">
+                  <select name="subject" id="subject-select">
+                    <option value="自动识别" id="auto-subject-option" selected>自动识别</option>
+                    <option>语文</option><option>数学</option><option>英语</option>
+                    <option>物理</option><option>化学</option><option>生物</option>
+                    <option>历史</option><option>地理</option><option>道德与法治</option>
+                  </select>
+                </span>
+              </label>
+            </div>
+
+            <fieldset class="choice-group">
+              <legend>学习重点</legend>
+              <div class="goal-options">
+                <label class="goal-option">
+                  <input type="radio" name="goal" value="understand" checked />
+                  <span><strong>讲透基础</strong><small>理清主线，逐步解释难点</small></span>
+                </label>
+                <label class="goal-option">
+                  <input type="radio" name="goal" value="exam" />
+                  <span><strong>考前提分</strong><small>聚焦题型、方法和易错点</small></span>
+                </label>
+                <label class="goal-option">
+                  <input type="radio" name="goal" value="deep" />
+                  <span><strong>迁移拓展</strong><small>建立关联，练习举一反三</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="depth-row">
+              <div>
+                <strong>详细讲解</strong>
+                <small>补充分步解释、例子与记忆提示</small>
+              </div>
+              <label class="switch" aria-label="开启详细讲解">
+                <input type="checkbox" id="depth-toggle" checked />
+                <span></span>
+              </label>
+            </div>
+
+            <div class="action-row">
+              <div class="output-promise">
+                <span aria-hidden="true">✓</span>
+                <p><strong>生成完整学习资料</strong><small>按 10 个栏目组织，覆盖讲解、方法、练习与检验</small></p>
+              </div>
+              <button class="generate-button" id="generate-button" type="submit" disabled>
+                <span>生成学习路径</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M14 7l5 5-5 5" /></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="view processing-view" id="processing-view" aria-labelledby="processing-title">
+        <div class="processing-shell">
+          <div class="processing-track" aria-hidden="true">
+            <div class="track-line"><span></span></div>
+            <div class="track-stops"><i class="is-active">读</i><i>理</i><i>练</i><i>查</i></div>
+          </div>
+
+          <div class="scan-visual" aria-hidden="true">
+            <div class="scan-paper">
+              <div class="scan-kicker"></div>
+              <div class="scan-title"></div>
+              <div class="scan-line"></div><div class="scan-line short"></div>
+              <div class="scan-block"><i></i><i></i><i></i></div>
+              <div class="scan-line"></div><div class="scan-line medium"></div>
+              <div class="scanner"></div>
+            </div>
+            <span class="scan-tag tag-one">主线</span>
+            <span class="scan-tag tag-two">难点</span>
+            <span class="scan-tag tag-three">练习</span>
+          </div>
+
+          <div class="processing-copy">
+            <p class="eyebrow">AI 教研正在进行</p>
+            <h1 id="processing-title">正在把资料变成学习路径</h1>
+            <p id="processing-file-name">正在读取上传内容</p>
+            <div class="processing-meta">
+              <span>已用时 <strong id="processing-elapsed">00:00</strong></span>
+              <span>通常需要 30—120 秒，复杂主题会多一次完整性检查</span>
+            </div>
+            <ol class="processing-steps" id="processing-steps">
+              <li class="is-active"><span></span><p><strong>读取资料</strong><small>识别文字、页面与内容边界</small></p></li>
+              <li><span></span><p><strong>建立主线</strong><small>判断学科、主题和学习难度</small></p></li>
+              <li><span></span><p><strong>设计学习</strong><small>拆解重点、图解与分层练习</small></p></li>
+              <li><span></span><p><strong>安排复习</strong><small>加入主动回忆与间隔计划</small></p></li>
+              <li><span></span><p><strong>检查成品</strong><small>校对结构、答案与内容完整性</small></p></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="view result-view" id="result-view" aria-label="生成的学习讲义">
+        <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
+        <div class="result-toolbar">
+          <div class="result-leading">
+            <button class="toolbar-back" id="back-button" type="button" aria-label="换一份资料">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M10 7l-5 5 5 5" /></svg>
+              <span>换一份</span>
+            </button>
+            <span class="result-brand-mini"><strong>学习资料生成器</strong><small>完整学习报告</small></span>
+          </div>
+          <div class="result-title-compact">
+            <strong id="toolbar-title">学习讲义</strong>
+            <span id="reading-status">准备开始</span>
+          </div>
+          <div class="toolbar-actions">
+            <button id="focus-button" type="button" aria-label="专注阅读" aria-pressed="false" title="专注阅读">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>
+              <span>专注</span>
+            </button>
+            <details class="export-menu" id="export-menu">
+              <summary aria-label="导出学习讲义">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14" /></svg>
+                <span>导出</span>
+              </summary>
+              <div class="export-menu-panel">
+                <button class="export-menu-action" id="copy-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h11v11H8zM5 16H4V5h11v1" /></svg>
+                  <span><strong>复制提纲</strong><small>复制本课重点与练习安排</small></span>
+                </button>
+                <button class="download-button pdf-button" id="pdf-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v5h5M9 13h6M9 17h4" /></svg>
+                  <span><strong>PDF</strong><small>适合打印与分享</small></span>
+                </button>
+                <button class="download-button word-button" id="word-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v5h5M9 12l1.7 5 1.8-4 1.8 4 1.7-5" /></svg>
+                  <span><strong>Word</strong><small>适合继续编辑</small></span>
+                </button>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="result-notice" id="result-notice" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 17h.01M10 3h4l8 15-2 3H4l-2-3z" /></svg>
+          <span id="notice-text"></span>
+          <button type="button" id="notice-close" aria-label="关闭提示">×</button>
+        </div>
+
+        <nav class="mobile-stage-nav" id="mobile-stage-nav" aria-label="学习资料目录"></nav>
+
+        <div class="reader-layout">
+          <aside class="reader-sidebar" aria-label="讲义目录">
+            <div class="source-summary">
+              <span>正在阅读</span>
+              <strong id="source-count">学科 · 阶段</strong>
+              <p id="source-name">建议用时 · 学习栏目</p>
+            </div>
+            <div class="toc-heading"><span>阅读目录</span><small id="toc-count">10 个栏目</small></div>
+            <nav id="toc-nav"></nav>
+            <p class="sidebar-reading-note">不必一次读完。先完成当前栏目，再沿目录继续。</p>
+          </aside>
+
+          <article class="study-paper" id="study-paper" aria-live="polite"></article>
+
+          <aside class="learning-checklist" aria-label="本次学习任务" hidden>
+            <div class="progress-ring" id="progress-ring" style="--progress: 0deg">
+              <div><strong id="progress-value">0%</strong><span>任务完成</span></div>
+            </div>
+            <div class="checklist-copy">
+              <span>今日学习任务</span>
+              <h2>学完，而不只是看完</h2>
+              <p id="checklist-tip">先从“学习导航”开始。</p>
+            </div>
+            <label><input type="checkbox" data-check="learn" /><span><strong>完成学什么</strong><small>目标与首个挑战</small></span></label>
+            <label><input type="checkbox" data-check="understand" /><span><strong>完成讲透关键点</strong><small>示范与独立练习</small></span></label>
+            <label><input type="checkbox" data-check="review" /><span><strong>完成检验与复习</strong><small>过关任务与复习</small></span></label>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script defer src="/vendor/katex/katex.min.js"></script>
+    <script defer src="/vendor/katex/contrib/mhchem.min.js"></script>
+    <script defer src="/vendor/katex/contrib/auto-render.min.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

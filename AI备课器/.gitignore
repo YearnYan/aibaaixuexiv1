@@ -1,0 +1,12 @@
+node_modules/
+build/
+build-test/
+dist/
+.playwright-cli/
+tmp/
+desktop.png
+document-bottom.png
+mobile.png
+mobile-top.png
+*.log
+output/

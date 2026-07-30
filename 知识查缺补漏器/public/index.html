@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>知识查缺补漏器</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%230b9f9a' d='M5 13.5 17.8 6v34L5 32.5z'/%3E%3Cpath fill='%2316b5aa' d='M17.8 6 30.2 13.5v19L17.8 40z'/%3E%3Cpath fill='%23087f80' d='M30.2 13.5 43 6v34l-12.8-7.5z'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script defer src="/app.js"></script>
+      <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" role="img">
+              <path d="M5 13.5 17.8 6v34L5 32.5V13.5Z" fill="#0e9d98" />
+              <path d="M17.8 6 30.2 13.5v19L17.8 40V6Z" fill="#16b5aa" />
+              <path d="M30.2 13.5 43 6v34l-12.8-7.5v-19Z" fill="#0a8c91" />
+              <circle cx="24" cy="12" r="5" fill="#fff" />
+              <circle cx="24" cy="12" r="2.4" fill="#0e9d98" />
+            </svg>
+          </div>
+          <div>
+            <h1>知识查缺补漏器</h1>
+            <p>AI驱动的学习诊断与补漏规划</p>
+          </div>
+        </div>
+        <button class="guide-button" type="button" data-open-guide>
+          <i data-lucide="circle-help"></i>
+          使用指南
+        </button>
+      </header>
+
+      <main class="workspace">
+        <section class="input-card" aria-label="输入区域">
+          <div class="section-title">
+            <span></span>
+            <h2>输入区域</h2>
+          </div>
+
+          <form id="analysisForm" class="analysis-form">
+            <div class="upload-section">
+              <div class="step-title">
+                <span class="step-number">1</span>
+                <h3>上传试卷或作业文件</h3>
+              </div>
+              <label class="dropzone" for="examFile" data-dropzone="examFile">
+                <input id="examFile" name="examFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt,.md" multiple hidden />
+                <i data-lucide="file-text"></i>
+                <strong>点击或拖拽文件到此处上传</strong>
+                <small>支持试卷、作业、测验等文件</small>
+                <span class="file-types">
+                  <b class="pdf">PDF</b>
+                  <b class="word">WORD</b>
+                  <b class="png">PNG</b>
+                  <b class="jpg">JPG</b>
+                </span>
+              </label>
+              <div class="file-preview" id="examPreview" hidden></div>
+            </div>
+
+            <div class="upload-section">
+              <div class="step-title">
+                <span class="step-number">2</span>
+                <h3>上传知识点 <em>（可选）</em></h3>
+              </div>
+              <label class="dropzone" for="knowledgeFile" data-dropzone="knowledgeFile">
+                <input id="knowledgeFile" name="knowledgeFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt,.md" multiple hidden />
+                <i data-lucide="folder-open"></i>
+                <strong>点击或拖拽文件到此处上传</strong>
+                <small>可上传知识点清单、课标、教材目录；不上传则由 AI 自动识别</small>
+                <span class="file-types">
+                  <b class="pdf">PDF</b>
+                  <b class="word">WORD</b>
+                  <b class="png">PNG</b>
+                  <b class="jpg">JPG</b>
+                </span>
+              </label>
+              <div class="file-preview" id="knowledgePreview" hidden></div>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                <span>年级</span>
+                <select name="grade" id="grade">
+                  <option>七年级</option>
+                  <option>八年级</option>
+                  <option>九年级</option>
+                  <option>高一</option>
+                  <option>高二</option>
+                  <option>高三</option>
+                </select>
+              </label>
+              <label>
+                <span>科目</span>
+                <select name="subject" id="subject">
+                  <option>数学</option>
+                  <option>语文</option>
+                  <option>英语</option>
+                  <option>物理</option>
+                  <option>化学</option>
+                  <option>生物</option>
+                  <option>历史</option>
+                  <option>地理</option>
+                  <option>政治</option>
+                </select>
+              </label>
+              <label>
+                <span>目标考试 <em>（可选）</em></span>
+                <select name="targetExam" id="targetExam">
+                  <option>期末考试</option>
+                  <option>期中考试</option>
+                  <option>月考</option>
+                  <option>小升初</option>
+                  <option>中考</option>
+                  <option>高考</option>
+                </select>
+              </label>
+              <label>
+                <span>当前考试阶段 <em>（可选）</em></span>
+                <select name="currentStage" id="currentStage">
+                  <option>70-80分</option>
+                  <option>60分以下</option>
+                  <option>60-70分</option>
+                  <option>80-90分</option>
+                  <option>90分以上</option>
+                </select>
+              </label>
+            </div>
+
+            <button class="generate-button" type="submit">
+              <i data-lucide="sparkles"></i>
+              <span>生成漏洞地图</span>
+            </button>
+
+            <p class="privacy-note">
+              <i data-lucide="lock"></i>
+              文件仅用于本次分析，服务端不保存上传内容
+            </p>
+          </form>
+        </section>
+
+        <section class="result-card" aria-label="知识查缺补漏器">
+          <div class="result-head">
+            <div class="result-title">
+              <i data-lucide="map"></i>
+              <h2>知识查缺补漏器</h2>
+            </div>
+            <p>生成时间：<span id="generatedAt">待生成</span></p>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="报告维度">
+            <button class="tab active" type="button" data-tab="map">
+              <i data-lucide="map-pin"></i>
+              知识点地图
+            </button>
+            <button class="tab" type="button" data-tab="severity">
+              <i data-lucide="shield-alert"></i>
+              严重程度
+            </button>
+            <button class="tab" type="button" data-tab="priority">
+              <i data-lucide="flag"></i>
+              优先级
+            </button>
+            <button class="tab" type="button" data-tab="route">
+              <i data-lucide="calendar-days"></i>
+              30天路线
+            </button>
+          </div>
+
+          <div class="panel-body">
+            <section class="tab-panel active" id="mapPanel">
+              <div class="map-toolbar">
+                <div>
+                  <div class="sub-title">
+                    <span></span>
+                    <h3>红黄绿知识点地图</h3>
+                  </div>
+                  <div class="legend">
+                    <span><b class="dot good"></b>掌握良好</span>
+                    <span><b class="dot gap"></b>存在漏洞</span>
+                    <span><b class="dot severe"></b>漏洞严重</span>
+                    <span><b class="dot untouched"></b>未涉及</span>
+                  </div>
+                </div>
+                <div class="view-switch" aria-label="视图切换">
+                  <button class="active" type="button" data-view="tree">树状图</button>
+                  <button type="button" data-view="list">列表视图</button>
+                </div>
+              </div>
+
+              <div id="loadingState" class="loading-state" hidden>
+                <div class="spinner"></div>
+                <strong>AI 正在分析资料</strong>
+                <small>正在识别考点、错因和补漏路径</small>
+              </div>
+
+              <div id="emptyState" class="empty-state">
+                <i data-lucide="map-pinned"></i>
+                <strong>上传两份资料后生成专属地图</strong>
+                <small>右侧会展示知识点分布、严重程度、优先级和 30 天补漏路线。</small>
+              </div>
+
+              <div class="tree-stage" id="treeStage" hidden></div>
+              <div class="list-stage" id="listStage" hidden></div>
+            </section>
+
+            <section class="tab-panel" id="severityPanel"></section>
+            <section class="tab-panel" id="priorityPanel"></section>
+            <section class="tab-panel" id="routePanel"></section>
+          </div>
+
+          <div class="stat-grid" id="statGrid">
+            <article>
+              <span>知识点总数</span>
+              <strong class="neutral">0<small>个</small></strong>
+            </article>
+            <article>
+              <span>掌握良好</span>
+              <strong class="good">0<small>个</small></strong>
+            </article>
+            <article>
+              <span>存在漏洞</span>
+              <strong class="gap">0<small>个</small></strong>
+            </article>
+            <article>
+              <span>漏洞严重</span>
+              <strong class="severe">0<small>个</small></strong>
+            </article>
+            <article>
+              <span>未涉及</span>
+              <strong class="untouched">0<small>个</small></strong>
+            </article>
+          </div>
+
+          <button class="report-button" type="button" id="openReport" disabled>
+            <i data-lucide="clipboard-list"></i>
+            查看完整内容
+          </button>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="reportModal">
+      <div class="modal-content">
+        <header>
+          <div>
+            <span>完整诊断报告</span>
+            <h2>知识查缺补漏器</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-modal aria-label="关闭">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <div class="modal-body" id="reportContent"></div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="guideModal">
+      <div class="modal-content guide-modal">
+        <header>
+          <div>
+            <span>使用指南</span>
+            <h2>三步生成补漏作战图</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-guide aria-label="关闭">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <div class="guide-steps">
+          <article>
+            <b>1</b>
+            <strong>上传试卷或作业</strong>
+            <p>支持 PDF、DOCX、图片和文本文件，建议使用包含错题或得分信息的资料。</p>
+          </article>
+          <article>
+            <b>2</b>
+            <strong>上传知识点清单（可选）</strong>
+            <p>可以补充教材目录、课标考点或老师整理的知识点表；不上传也能自动识别。</p>
+          </article>
+          <article>
+            <b>3</b>
+            <strong>生成报告</strong>
+            <p>AI 会输出知识点地图、风险排序、优先补漏任务和 30 天路线。</p>
+          </article>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

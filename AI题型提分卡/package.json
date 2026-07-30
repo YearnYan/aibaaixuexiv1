@@ -1,0 +1,15 @@
+{
+  "name": "ai-question-improvement-card",
+  "version": "1.0.0",
+  "description": "AI题型提分卡单页网站",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mammoth": "^1.10.0",
+    "multer": "^2.0.2",
+    "pdf-parse": "^1.1.1"
+  }
+}

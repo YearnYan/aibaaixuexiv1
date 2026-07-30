@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>积分管理后台｜艾爸AI学习</title>
+    <link rel="icon" type="image/jpeg" href="./assets/logo.jpg" />
+    <link rel="stylesheet" href="./assets/site.css" />
+    <link rel="stylesheet" href="./assets/admin.css" />
+  </head>
+  <body class="admin-page">
+    <header class="admin-header">
+      <a class="admin-brand" href="./index.html">
+        <img src="./assets/logo.jpg" alt="艾爸AI学习" />
+        <span><strong>艾爸AI学习</strong><small>积分管理后台</small></span>
+      </a>
+      <div class="admin-header-actions">
+        <span class="admin-user-badge" id="adminUserBadge">未登录</span>
+        <button class="admin-button admin-button-danger" id="adminLogoutButton" type="button" hidden>退出</button>
+        <a class="admin-button admin-button-light" href="./index.html">返回主页</a>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="admin-intro">
+        <div><p class="admin-kicker">POINTS OPERATIONS</p><h1>积分管理后台</h1></div>
+        <p>统一查看用户余额、卡密、积分流水和生成扣费记录。所有调整都会继续使用现有平台接口与日志规则。</p>
+      </section>
+      <p class="admin-status" id="adminStatus" role="status" aria-live="polite">正在检查管理员身份</p>
+
+      <section class="admin-auth-panel" id="adminAuthPanel">
+        <h2>管理员登录</h2>
+        <p>首个注册账号将自动成为管理员；已有账号时请直接登录。</p>
+        <div class="admin-auth-form">
+          <label class="admin-field"><span>管理员账号</span><input id="adminUsername" type="text" autocomplete="username" /></label>
+          <label class="admin-field"><span>密码</span><input id="adminPassword" type="password" autocomplete="current-password" /></label>
+          <div class="admin-auth-actions">
+            <button class="admin-button admin-button-solid" id="adminLoginButton" type="button">登录</button>
+            <button class="admin-button admin-button-light" id="adminRegisterButton" type="button">注册首个管理员</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-workspace" id="adminWorkspace" hidden>
+        <div class="admin-toolbar">
+          <div><h2>积分运营概览</h2><p>余额、卡密和流水均来自当前平台实时数据。</p></div>
+          <button class="admin-button admin-button-light" id="refreshPointsButton" type="button">刷新数据</button>
+        </div>
+
+        <div class="metric-grid" id="pointsSummary"></div>
+
+        <div class="admin-form-grid">
+          <section class="admin-section">
+            <div class="admin-section-head"><h3>生成积分兑换码</h3></div>
+            <form class="admin-form" id="createCodesForm">
+              <div class="admin-form-row">
+                <label class="admin-field"><span>每张积分</span><input id="codePointsInput" type="number" min="1" max="100000" step="1" value="10" required /></label>
+                <label class="admin-field"><span>生成数量</span><input id="codeCountInput" type="number" min="1" max="200" step="1" value="1" required /></label>
+              </div>
+              <button class="admin-button admin-button-solid" id="createCodesButton" type="submit">生成兑换码</button>
+            </form>
+            <div class="code-output" id="createdCodesOutput"></div>
+          </section>
+
+          <section class="admin-section">
+            <div class="admin-section-head"><h3>调整用户积分</h3></div>
+            <form class="admin-form" id="adjustPointsForm">
+              <label class="admin-field"><span>用户账号</span><input id="adjustUsernameInput" type="text" autocomplete="off" required /></label>
+              <div class="admin-form-row">
+                <label class="admin-field"><span>调整方式</span><select id="adjustModeInput"><option value="add">增加 / 扣减</option><option value="set">设置为</option></select></label>
+                <label class="admin-field"><span>积分数量</span><input id="adjustPointsInput" type="number" step="1" value="10" required /></label>
+              </div>
+              <label class="admin-field"><span>备注</span><input id="adjustNoteInput" type="text" maxlength="120" /></label>
+              <button class="admin-button admin-button-solid" id="adjustPointsButton" type="submit">保存积分调整</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="admin-section"><div class="admin-section-head"><h3>用户积分</h3></div><div class="table-shell" id="usersTable"></div></section>
+        <section class="admin-section"><div class="admin-section-head"><h3>生成扣费与退款记录</h3></div><div class="table-shell" id="batchesTable"></div></section>
+        <section class="admin-section"><div class="admin-section-head"><h3>积分流水</h3></div><div class="table-shell" id="pointLogsTable"></div></section>
+        <section class="admin-section"><div class="admin-section-head"><h3>兑换码</h3></div><div class="table-shell" id="redeemCodesTable"></div></section>
+      </section>
+    </main>
+
+    <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
+    <script type="module" src="./scripts/points-admin.js"></script>
+  </body>
+</html>

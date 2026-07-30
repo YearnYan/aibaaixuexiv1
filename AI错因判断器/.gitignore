@@ -1,0 +1,8 @@
+node_modules/
+data/ai-config.json
+data/*.tmp
+output/
+.playwright-cli/
+.learnings/
+.env
+npm-debug.log*

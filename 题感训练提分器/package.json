@@ -1,0 +1,19 @@
+{
+  "name": "question-sense-trainer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node scripts/build.mjs",
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js && node --check academic-content.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "katex": "^0.18.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.3"
+  }
+}

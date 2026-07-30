@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="上传题目和学生原始答案，定位第一个真正导致后续错误的位置。">
+  <title>AI 错因判断</title>
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/vendor/lucide.min.js" defer></script>
+  <script src="/vendor/katex/katex.min.js" defer></script>
+  <script src="/vendor/katex/contrib/mhchem.min.js" defer></script>
+  <script src="/vendor/katex/contrib/auto-render.min.js" defer></script>
+  <script src="/assets/app.js" defer></script>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-group">
+        <h1>AI 错因判断</h1>
+        <p>找到第一次真正出错的位置</p>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="input-panel surface-panel" aria-label="诊断材料输入">
+        <form id="diagnosis-form" novalidate>
+          <div class="field-group subject-field">
+            <label for="subject">学科</label>
+            <div class="select-wrap">
+              <select id="subject" name="subject">
+                <option value="数学">数学</option>
+                <option value="语文">语文</option>
+                <option value="英语">英语</option>
+                <option value="物理">物理</option>
+                <option value="化学">化学</option>
+                <option value="生物">生物</option>
+                <option value="历史">历史</option>
+                <option value="地理">地理</option>
+                <option value="道德与法治">道德与法治</option>
+                <option value="其他">其他</option>
+              </select>
+              <i data-lucide="chevron-down" aria-hidden="true"></i>
+            </div>
+          </div>
+
+          <div class="field-group upload-field">
+            <label id="upload-label">上传题目</label>
+            <input id="question-file" name="questionFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" hidden>
+            <div id="upload-zone" class="upload-zone" tabindex="0" role="button" aria-labelledby="upload-label upload-title">
+              <div class="upload-placeholder" id="upload-placeholder">
+                <i data-lucide="file-up" class="upload-icon" aria-hidden="true"></i>
+                <strong id="upload-title">点击或拖拽文件到此处上传</strong>
+                <span>PDF / Word / PNG / JPG</span>
+                <small>单个文件不超过 20MB</small>
+              </div>
+              <div class="file-preview" id="file-preview" hidden>
+                <span class="file-icon"><i data-lucide="file-check-2" aria-hidden="true"></i></span>
+                <strong id="file-name"></strong>
+                <span id="file-size"></span>
+                <button type="button" class="text-button" id="replace-file">更换文件</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group answer-field">
+            <div class="field-heading">
+              <label for="student-answer">学生原始答案（可选）</label>
+              <button class="icon-text-button" id="open-materials" type="button" title="补充正确答案、评分标准和学生自判">
+                <i data-lucide="list-plus" aria-hidden="true"></i>
+                <span>补充材料</span>
+                <b id="material-count" hidden></b>
+              </button>
+            </div>
+            <div class="textarea-wrap">
+              <textarea id="student-answer" name="studentAnswer" maxlength="2000" placeholder="在此输入学生的原始答案与完整作答过程（可选）"></textarea>
+              <span class="char-count"><b id="answer-count">0</b> / 2000</span>
+            </div>
+          </div>
+
+          <button id="analyze-button" class="primary-button" type="submit">
+            <span class="button-content">开始错因判断</span>
+            <span class="button-loading" hidden><i data-lucide="loader-circle" aria-hidden="true"></i>正在分析题目</span>
+          </button>
+        </form>
+      </aside>
+
+      <section class="report-panel surface-panel" aria-labelledby="report-title">
+        <div class="report-heading">
+          <h2 id="report-title">错因诊断报告</h2>
+          <div class="report-actions">
+            <button id="download-pdf" class="export-button" type="button" disabled>
+              <span class="export-ready"><i data-lucide="file-down" aria-hidden="true"></i>下载 PDF</span>
+              <span class="export-loading" hidden><i data-lucide="loader-circle" aria-hidden="true"></i>生成中</span>
+            </button>
+            <button id="download-docx" class="export-button" type="button" disabled>
+              <span class="export-ready"><i data-lucide="file-text" aria-hidden="true"></i>下载 Word</span>
+              <span class="export-loading" hidden><i data-lucide="loader-circle" aria-hidden="true"></i>生成中</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-strip" aria-live="polite">
+          <div><span>首个错误：</span><strong id="summary-first-error">第2步</strong></div>
+          <span class="summary-divider" aria-hidden="true"></span>
+          <div><span>错因类型：</span><strong id="summary-error-type">方法选择错误</strong></div>
+        </div>
+
+        <div class="timeline" id="timeline" aria-label="答题错误链">
+          <div class="timeline-track" aria-hidden="true"><span id="timeline-progress"></span></div>
+          <article class="timeline-step is-correct" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-dot"></span>
+            <h3>题意读取</h3>
+            <em>正确</em>
+          </article>
+          <article class="timeline-step is-error" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-dot"></span>
+            <h3>方法选择</h3>
+            <em>首次出错</em>
+          </article>
+          <article class="timeline-step is-affected" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-dot"></span>
+            <h3>列式计算</h3>
+            <em>受影响</em>
+          </article>
+          <article class="timeline-step is-affected" data-step="4">
+            <span class="step-number">4</span>
+            <span class="step-dot"></span>
+            <h3>最终答案</h3>
+            <em>受影响</em>
+          </article>
+        </div>
+
+        <div class="report-grid" id="report-grid" aria-live="polite">
+          <article class="report-card card-error">
+            <header><span>1</span><h3>首个错误位置</h3></header>
+            <div class="card-content first-error-content" tabindex="0" aria-label="首个错误位置内容">
+              <strong id="first-error-location">第2步：方法选择</strong>
+              <p id="first-error-description">在“方法选择”环节首次出现错误，导致后续步骤均受到影响。</p>
+            </div>
+          </article>
+
+          <article class="report-card card-error">
+            <header><span>2</span><h3>错误证据</h3></header>
+            <div class="card-content evidence-content" tabindex="0" aria-label="错误证据内容">
+              <blockquote id="error-evidence">把两段速度直接取平均，忽略总路程与总时间</blockquote>
+            </div>
+          </article>
+
+          <article class="report-card card-error error-type-card">
+            <header>
+              <span>3</span><h3>错因类型</h3>
+              <button id="open-review" class="card-action" type="button" title="教师复核"><i data-lucide="pencil" aria-hidden="true"></i></button>
+            </header>
+            <div class="card-content error-type-content" tabindex="0" aria-label="错因类型内容">
+              <strong id="error-type-badge">方法选择错误</strong>
+              <p id="error-type-reason">未选择基于“总路程 ÷ 总时间”的正确方法，导致思路偏离。</p>
+            </div>
+          </article>
+
+          <article class="report-card card-blue">
+            <header><span>4</span><h3>后续错误链</h3></header>
+            <div class="card-content chain-content" id="error-chain" tabindex="0" aria-label="后续错误链内容">
+              <div><i></i><p>第3步&nbsp; 列式计算：<b>受影响</b><small>（基于错误方法列式）</small></p></div>
+              <div><i></i><p>第4步&nbsp; 最终答案：<b>受影响</b><small>（在错误基础上得到结果）</small></p></div>
+            </div>
+          </article>
+
+          <article class="report-card card-blue">
+            <header><span>5</span><h3>学生自判与AI判断</h3></header>
+            <div class="card-content comparison-content" tabindex="0" aria-label="学生自判与AI判断内容">
+              <div><i data-lucide="user-round" aria-hidden="true"></i><b>学生自判</b><span id="student-judgment">运算粗心</span></div>
+              <div><i data-lucide="bot" aria-hidden="true"></i><b>AI判断</b><span id="ai-judgment">方法选择错误</span></div>
+              <p id="comparison-conclusion">结论：学生自判与AI判断不一致</p>
+            </div>
+          </article>
+
+          <article class="report-card card-teal">
+            <header><span>6</span><h3>下一步纠正动作</h3></header>
+            <div class="card-content correction-content" tabindex="0" aria-label="下一步纠正动作内容">
+              <strong id="correction-action"><i data-lucide="reply" aria-hidden="true"></i><span>先写出“总路程 ÷ 总时间”</span></strong>
+              <div class="mini-process" id="correction-checklist"><i></i><i></i><i></i><i></i><span></span></div>
+              <p id="correction-rationale">回到正确方法，重新列式与计算</p>
+            </div>
+          </article>
+        </div>
+
+        <footer class="report-status" id="report-status">
+          <div><i data-lucide="circle-alert" aria-hidden="true"></i><strong id="review-status">需要教师复核</strong></div>
+          <span>生成时间：<time id="generated-time">2025-05-24 10:32:18</time></span>
+        </footer>
+
+        <div class="report-loading" id="report-loading" hidden>
+          <div class="analysis-orbit"><i data-lucide="scan-search" aria-hidden="true"></i></div>
+          <strong>正在定位第一个关键错误</strong>
+          <p id="loading-message">读取题目材料并还原学生作答链...</p>
+          <div class="loading-bar"><span></span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="materials-dialog" class="app-dialog">
+    <form method="dialog" id="materials-form">
+      <header>
+        <div><span>分析材料</span><h2>补充诊断依据</h2></div>
+        <button class="icon-button dialog-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <p class="dialog-intro">信息越完整，AI 越能从原始过程定位首个错误；不确定的内容可以留空。</p>
+      <div class="dialog-fields">
+        <label>正确答案<textarea id="correct-answer" maxlength="12000" placeholder="输入正确答案（可选）"></textarea></label>
+        <label>标准过程<textarea id="standard-process" maxlength="12000" placeholder="输入标准解题过程（可选）"></textarea></label>
+        <label>评分标准<textarea id="scoring-criteria" maxlength="8000" placeholder="输入得分点或评分标准（可选）"></textarea></label>
+        <label>学生自判
+          <select id="self-assessment">
+            <option value="">未提供</option>
+            <option value="知识没掌握">知识没掌握</option>
+            <option value="题目读错了">题目读错了</option>
+            <option value="方法选错了">方法选错了</option>
+            <option value="解题步骤有误">解题步骤有误</option>
+            <option value="运算粗心">运算粗心</option>
+            <option value="答案表达不完整">答案表达不完整</option>
+            <option value="没有检查">没有检查</option>
+          </select>
+        </label>
+      </div>
+      <footer>
+        <button class="secondary-button dialog-close" type="button">取消</button>
+        <button class="primary-small-button" id="save-materials" type="submit">保存材料</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="review-dialog" class="app-dialog compact-dialog">
+    <form method="dialog" id="review-form">
+      <header>
+        <div><span>教师复核</span><h2>修改错因结论</h2></div>
+        <button class="icon-button dialog-close" type="button" aria-label="关闭"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="dialog-fields">
+        <label>复核后的错因类型
+          <select id="review-error-type">
+            <option>知识理解或记忆错误</option>
+            <option>题意读取错误</option>
+            <option>方法选择错误</option>
+            <option>解题步骤错误</option>
+            <option>运算判断或执行错误</option>
+            <option>答案表达错误</option>
+            <option>检查动作缺失</option>
+            <option>信息不足，无法确定</option>
+          </select>
+        </label>
+        <label>复核说明<textarea id="review-note" maxlength="500" placeholder="记录教师判断依据（可选）"></textarea></label>
+      </div>
+      <footer>
+        <button class="secondary-button dialog-close" type="button">取消</button>
+        <button class="primary-small-button" id="save-review" type="submit">确认复核</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <i data-lucide="circle-alert" aria-hidden="true"></i>
+    <span id="toast-message"></span>
+    <a id="toast-action" href="/settings.html" hidden>前往配置</a>
+  </div>
+</body>
+</html>

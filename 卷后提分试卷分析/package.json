@@ -1,0 +1,14 @@
+{
+  "name": "post-exam-score-boost",
+  "version": "1.0.0",
+  "private": true,
+  "description": "卷后提分 - 主站统一接入静态子站",
+  "type": "module",
+  "scripts": {
+    "build:secure": "node scripts/secure-build.mjs",
+    "build:prod": "npm run build:secure"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

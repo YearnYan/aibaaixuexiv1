@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#173F3B">
+    <meta name="description" content="配置试卷讲评 PPT 的本地 AI 网关、模型与运行参数。">
+    <title>AI 接线台 · 试卷讲评 PPT</title>
+    <link rel="stylesheet" href="styles.css?v=20260716-ai-config">
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+    <div class="page-frame">
+        <header class="topbar">
+            <a class="back-link" href="/" aria-label="返回试卷讲评 PPT 工作台">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                <span>返回课件工作台</span>
+            </a>
+            <p class="runtime-note"><span aria-hidden="true"></span>仅作用于当前本地运行实例</p>
+        </header>
+
+        <main class="config-shell">
+            <section class="signal-panel" aria-labelledby="pageTitle">
+                <div class="signal-intro">
+                    <p class="eyebrow">LOCAL AI ROUTING / 本地接线</p>
+                    <h1 id="pageTitle">把模型，接进<br><strong>课件生产线。</strong></h1>
+                    <p class="lead">在这里更换兼容 OpenAI 的网关与模型。保存后，下一次试卷识别会直接使用这组配置。</p>
+                </div>
+
+                <div class="signal-route" aria-label="AI 请求信号链">
+                    <article class="route-node" data-route-node="config">
+                        <span class="node-index">输入</span>
+                        <div>
+                            <h2>运行配置</h2>
+                            <p>网关 · 模型 · API Key</p>
+                        </div>
+                        <span class="node-state" id="inputState">待读取</span>
+                    </article>
+                    <div class="route-wire" aria-hidden="true"><span></span></div>
+                    <article class="route-node" data-route-node="runtime">
+                        <span class="node-index">代理</span>
+                        <div>
+                            <h2>Node 运行实例</h2>
+                            <p id="runtimeAddress">127.0.0.1</p>
+                        </div>
+                        <span class="node-state is-live">本机</span>
+                    </article>
+                    <div class="route-wire" aria-hidden="true"><span></span></div>
+                    <article class="route-node" data-route-node="output">
+                        <span class="node-index">输出</span>
+                        <div>
+                            <h2>试卷生成接口</h2>
+                            <p>/api/chat · /api/site/exam-ppt</p>
+                        </div>
+                        <span class="node-state" id="outputState">待配置</span>
+                    </article>
+                </div>
+
+                <p class="memory-rule">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    Key 不回显、不写入浏览器存储；服务重启后恢复环境变量。
+                </p>
+            </section>
+
+            <section class="form-panel" aria-labelledby="formTitle">
+                <div class="form-heading">
+                    <div>
+                        <p class="section-label">CURRENT INSTANCE</p>
+                        <h2 id="formTitle">当前运行配置</h2>
+                    </div>
+                    <div class="key-badge" id="keyBadge" data-state="loading">
+                        <span aria-hidden="true"></span>
+                        <strong>正在读取</strong>
+                    </div>
+                </div>
+
+                <form id="configForm" novalidate>
+                    <fieldset class="form-section">
+                        <legend>连接目标</legend>
+
+                        <label class="field field-wide" for="baseURL">
+                            <span class="field-label">API 网关地址</span>
+                            <span class="input-shell">
+                                <input id="baseURL" name="baseURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://api.example.com/v1" required>
+                                <span class="field-mark">URL</span>
+                            </span>
+                            <small>支持 OpenAI Chat Completions 兼容网关；填写完整端点时会自动移除 /chat/completions。</small>
+                        </label>
+
+                        <label class="field field-wide" for="model">
+                            <span class="field-label">模型名称</span>
+                            <span class="input-shell">
+                                <input id="model" name="model" type="text" autocomplete="off" spellcheck="false" placeholder="gemini-3-flash-preview" maxlength="200" required>
+                                <span class="field-mark">MODEL</span>
+                            </span>
+                            <small>使用网关实际支持的模型标识，保存前不会发起外部请求。</small>
+                        </label>
+
+                        <div class="field field-wide">
+                            <label class="field-label" for="apiKey">API Key</label>
+                            <span class="input-shell secret-shell">
+                                <input id="apiKey" name="apiKey" type="password" autocomplete="new-password" spellcheck="false" placeholder="粘贴 API Key">
+                                <button class="reveal-key" id="revealKey" type="button" aria-label="显示 API Key" aria-pressed="false">
+                                    <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.1 12s3.6-7 9.9-7 9.9 7 9.9 7-3.6 7-9.9 7-9.9-7-9.9-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.7A2 2 0 0 0 13.3 13.4M9.9 4.2A10.7 10.7 0 0 1 12 4c6.3 0 9.9 8 9.9 8a18.6 18.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.6 2.1 12 2.1 12s3.6 8 9.9 8a9.8 9.8 0 0 0 4.1-.9"/></svg>
+                                </button>
+                            </span>
+                            <small id="keyHint">密钥永不从服务端回显；已配置时留空即可保留。</small>
+                        </div>
+
+                        <label class="clear-key" for="clearApiKey">
+                            <input id="clearApiKey" name="clearApiKey" type="checkbox">
+                            <span class="check-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
+                            <span><strong>清除当前 API Key</strong><small>保存时执行；不会修改 .env 中的值。</small></span>
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="form-section parameter-section">
+                        <legend>生成边界</legend>
+
+                        <label class="field" for="timeoutSeconds">
+                            <span class="field-label">请求超时</span>
+                            <span class="input-shell compact-input">
+                                <input id="timeoutSeconds" name="timeoutSeconds" type="number" min="5" max="600" step="1" required>
+                                <span class="field-mark">秒</span>
+                            </span>
+                        </label>
+
+                        <label class="field" for="maxTokens">
+                            <span class="field-label">最大输出 Token</span>
+                            <span class="input-shell compact-input">
+                                <input id="maxTokens" name="maxTokens" type="number" min="256" max="65536" step="1" required>
+                                <span class="field-mark">MAX</span>
+                            </span>
+                        </label>
+
+                        <label class="field temperature-field" for="temperature">
+                            <span class="range-heading"><span class="field-label">Temperature</span><output id="temperatureValue" for="temperature">0.2</output></span>
+                            <input id="temperature" name="temperature" type="range" min="0" max="2" step="0.1" value="0.2">
+                            <span class="range-scale" aria-hidden="true"><span>稳定 0</span><span>发散 2</span></span>
+                        </label>
+                    </fieldset>
+
+                    <div class="form-actions">
+                        <button class="button primary" id="saveButton" type="submit">
+                            <span>保存到当前进程</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </button>
+                        <button class="button secondary" id="testButton" type="button">测试连接</button>
+                        <button class="reset-button" id="resetButton" type="button">恢复环境变量</button>
+                    </div>
+
+                    <div class="status-message" id="statusMessage" role="status" aria-live="polite" hidden></div>
+                </form>
+            </section>
+        </main>
+
+        <footer>
+            <span>试卷讲评 PPT · AI 接线台</span>
+            <span>配置范围：当前 Node.js 进程</span>
+        </footer>
+    </div>
+
+    <script src="app.js?v=20260716-ai-config"></script>
+</body>
+</html>

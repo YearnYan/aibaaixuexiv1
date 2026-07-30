@@ -1,0 +1,210 @@
+/* 艾爸AI学习全站视觉令牌：只覆盖外观，不改变子站布局与交互。 */
+:root {
+  color-scheme: light !important;
+  --aiba-paper: #fff9e8;
+  --aiba-paper-deep: #f6e8c5;
+  --aiba-white: #ffffff;
+  --aiba-sun: #f6c344;
+  --aiba-sun-soft: #fff0b7;
+  --aiba-brick: #9d321e;
+  --aiba-brick-dark: #742113;
+  --aiba-teal: #247c78;
+  --aiba-ink: #2b211d;
+  --aiba-muted: #705f56;
+  --aiba-line: #dfcda6;
+
+  --bg: var(--aiba-paper) !important;
+  --bg-dark: var(--aiba-paper) !important;
+  --bg-panel: var(--aiba-white) !important;
+  --bg-soft: #fbf3dd !important;
+  --background: var(--aiba-paper) !important;
+  --surface: var(--aiba-white) !important;
+  --surface-solid: var(--aiba-white) !important;
+  --surface-soft: #f8efd8 !important;
+  --surface-muted: #f3e6c6 !important;
+  --surface-deep: #f0dfb8 !important;
+  --surface2: #f5e9cc !important;
+  --panel: var(--aiba-white) !important;
+  --panel-bg: var(--aiba-white) !important;
+  --card: var(--aiba-white) !important;
+  --card-bg: var(--aiba-white) !important;
+
+  --ink: var(--aiba-ink) !important;
+  --ink-deep: var(--aiba-ink) !important;
+  --ink-soft: #59483f !important;
+  --text: var(--aiba-ink) !important;
+  --text-main: var(--aiba-ink) !important;
+  --text-primary: var(--aiba-ink) !important;
+  --text2: var(--aiba-muted) !important;
+  --text-dim: var(--aiba-muted) !important;
+  --text-secondary: var(--aiba-muted) !important;
+  --muted: var(--aiba-muted) !important;
+
+  --primary: var(--aiba-brick-dark) !important;
+  --primary-color: var(--aiba-brick-dark) !important;
+  --primary-hover: #5f190e !important;
+  --accent: var(--aiba-brick) !important;
+  --accent2: var(--aiba-sun) !important;
+  --accent-strong: var(--aiba-brick-dark) !important;
+  --accent-dark: var(--aiba-brick-dark) !important;
+  --accent-soft: #f7dfd8 !important;
+  --accent-tint: rgba(157, 50, 30, 0.1) !important;
+  --accent-shadow: rgba(116, 33, 19, 0.18) !important;
+  --brand: var(--aiba-brick) !important;
+  --brand-deep: var(--aiba-brick-dark) !important;
+  --brand-deep-hover: #5f190e !important;
+  --warm: var(--aiba-sun) !important;
+
+  --line: var(--aiba-line) !important;
+  --border: var(--aiba-line) !important;
+  --border-color: var(--aiba-line) !important;
+  --shadow: 0 16px 40px rgba(84, 51, 29, 0.12) !important;
+
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif !important;
+}
+
+html {
+  accent-color: var(--aiba-brick);
+}
+
+body {
+  color: var(--aiba-ink) !important;
+  background-color: var(--aiba-paper) !important;
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif !important;
+}
+
+:where(h1, h2, h3, h4, h5, h6, legend, .title, .page-title, .panel-title, .section-title, .card-title) {
+  color: var(--aiba-ink) !important;
+  letter-spacing: 0 !important;
+}
+
+:where(.subtitle, .description, .hint, .help, .help-text, .meta, .muted, .text-muted, small) {
+  color: var(--aiba-muted) !important;
+}
+
+:where(input, select, textarea) {
+  border-color: #cdb98e !important;
+  color: var(--aiba-ink) !important;
+  background: var(--aiba-white) !important;
+  caret-color: var(--aiba-brick) !important;
+}
+
+:where(input, select, textarea)::placeholder {
+  color: #907c70 !important;
+  opacity: 1 !important;
+}
+
+:where(input, select, textarea, button, a):focus-visible {
+  outline: 3px solid var(--aiba-teal) !important;
+  outline-offset: 3px !important;
+}
+
+:where(
+  .primary-button,
+  .primary-btn,
+  .btn-primary,
+  .button-primary,
+  .bar-btn.primary,
+  .generate-btn,
+  .generate-button,
+  .submit-btn,
+  .submit-button,
+  .action-primary,
+  button[type="submit"]
+) {
+  border-color: var(--aiba-brick-dark) !important;
+  color: var(--aiba-white) !important;
+  background: var(--aiba-brick-dark) !important;
+  text-shadow: none !important;
+}
+
+:where(
+  .primary-button,
+  .primary-btn,
+  .btn-primary,
+  .button-primary,
+  .bar-btn.primary,
+  .generate-btn,
+  .generate-button,
+  .submit-btn,
+  .submit-button,
+  .action-primary,
+  button[type="submit"]
+):hover:not(:disabled) {
+  border-color: #5f190e !important;
+  color: var(--aiba-white) !important;
+  background: #5f190e !important;
+}
+
+:where(
+  .secondary-button,
+  .secondary-btn,
+  .btn-secondary,
+  .button-secondary,
+  .ghost-button,
+  .ghost-btn,
+  .outline-button,
+  .bar-btn:not(.primary),
+  .action-secondary
+) {
+  border-color: #cdb98e !important;
+  color: var(--aiba-ink) !important;
+  background: var(--aiba-white) !important;
+  text-shadow: none !important;
+}
+
+:where(
+  .secondary-button,
+  .secondary-btn,
+  .btn-secondary,
+  .button-secondary,
+  .ghost-button,
+  .ghost-btn,
+  .outline-button,
+  .bar-btn:not(.primary),
+  .action-secondary
+):hover:not(:disabled) {
+  border-color: var(--aiba-teal) !important;
+  color: #123f3d !important;
+  background: #f2fbfa !important;
+}
+
+:where(.danger-button, .btn-danger, .danger, button[data-danger]) {
+  border-color: #a12618 !important;
+  color: #ffffff !important;
+  background: #a12618 !important;
+}
+
+:where(.card, .panel, .workspace, .control-panel, .result-panel, .form-card, .upload-card, .result-card, .analysis-card, .settings-card) {
+  border-color: var(--aiba-line) !important;
+  background-color: var(--aiba-white) !important;
+  box-shadow: 0 14px 36px rgba(84, 51, 29, 0.1) !important;
+}
+
+:where(.badge, .tag, .chip, .pill) {
+  border-color: #d9bd74 !important;
+  color: #6a3a0c !important;
+  background: var(--aiba-sun-soft) !important;
+}
+
+:where(header, .topbar, .header, .app-header, .nav, .sidebar) {
+  border-color: var(--aiba-line) !important;
+}
+
+:where(a) {
+  text-decoration-color: var(--aiba-brick) !important;
+}
+
+::selection {
+  color: var(--aiba-ink);
+  background: var(--aiba-sun-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

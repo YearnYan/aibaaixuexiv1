@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题归因追分器</title>
+    <link rel="stylesheet" href="./style.css?v=20260628matrix">
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+    <div class="app-shell" id="mainContent">
+        <header class="app-header">
+            <div class="brand-mark" aria-hidden="true">
+                <span class="brand-mark-ring">✓</span>
+            </div>
+            <div class="brand-copy">
+                <h1>错题归因追分器</h1>
+                <p>一题一包 · 精准追击 · 直击错因</p>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <section class="input-panel">
+                <div class="panel-title">
+                    <span class="title-bar" aria-hidden="true"></span>
+                    <h2>输入错题信息</h2>
+                </div>
+
+                <div class="field-grid">
+                    <label class="field">
+                        <span>年级</span>
+                        <select id="gradeSelect">
+                            <option value="">请选择年级</option>
+                            <option value="小学三年级">小学三年级</option>
+                            <option value="小学四年级">小学四年级</option>
+                            <option value="小学五年级">小学五年级</option>
+                            <option value="小学六年级">小学六年级</option>
+                            <option value="七年级">七年级</option>
+                            <option value="八年级">八年级</option>
+                            <option value="九年级">九年级</option>
+                            <option value="高一">高一</option>
+                            <option value="高二">高二</option>
+                            <option value="高三">高三</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>科目</span>
+                        <select id="subjectSelect">
+                            <option value="">请选择科目</option>
+                            <option value="语文">语文</option>
+                            <option value="数学">数学</option>
+                            <option value="英语">英语</option>
+                            <option value="物理">物理</option>
+                            <option value="化学">化学</option>
+                            <option value="生物">生物</option>
+                            <option value="历史">历史</option>
+                            <option value="地理">地理</option>
+                            <option value="政治">政治</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label class="upload-zone" id="uploadZone" for="wrongQuestionFile">
+                    <input id="wrongQuestionFile" class="upload-input-large" type="file" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx">
+                    <span class="upload-icon" aria-hidden="true"></span>
+                    <strong>上传错题</strong>
+                    <span>点击或拖拽文件到此区域上传</span>
+                    <small>支持格式： <b>PDF</b> / <b>WORD</b> / <b>PNG</b> / <b>JPG</b></small>
+                </label>
+
+                <div id="uploadStatus" class="upload-status">文件仅用于生成归因追分结果，安全加密，保护隐私</div>
+                <div id="wrongQuestionPreview" class="wrong-question-preview"></div>
+
+                <div class="settings-panel" aria-label="训练包设置">
+                    <div class="settings-head">
+                        <span>题型矩阵</span>
+                        <small>每类默认 3 道</small>
+                    </div>
+                    <div id="questionTypeContainer" class="question-type-list">
+                        <span class="muted">正在加载题型...</span>
+                    </div>
+                    <div class="type-count-grid" aria-label="每类题目数量">
+                        <div class="type-count-row">
+                            <span class="type-count-label">相似题</span>
+                            <select id="count_similar" class="type-count-select">
+                                <option value="1">1题</option>
+                                <option value="2">2题</option>
+                                <option value="3" selected>3题</option>
+                            </select>
+                        </div>
+                        <div class="type-count-row">
+                            <span class="type-count-label">变式题</span>
+                            <select id="count_variant" class="type-count-select">
+                                <option value="1">1题</option>
+                                <option value="2">2题</option>
+                                <option value="3" selected>3题</option>
+                            </select>
+                        </div>
+                        <div class="type-count-row">
+                            <span class="type-count-label">综合应用题</span>
+                            <select id="count_application" class="type-count-select">
+                                <option value="1">1题</option>
+                                <option value="2">2题</option>
+                                <option value="3" selected>3题</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="switch-row">
+                        <input type="checkbox" id="showOriginal" checked>
+                        <span>试卷中显示原题</span>
+                    </label>
+                    <label class="switch-row">
+                        <input type="checkbox" id="showAnswer" checked>
+                        <span>导出答案和解析</span>
+                    </label>
+                </div>
+
+                <button class="btn-gen" id="generateBtn">
+                    <span>生成归因追分结果</span>
+                </button>
+
+                <div class="privacy-note">
+                    <span aria-hidden="true">锁</span>
+                    文件仅用于生成归因追分结果，安全加密，保护隐私
+                </div>
+            </section>
+
+            <section class="result-panel" id="previewWrapper">
+                <div class="loading-overlay" id="loading">
+                    <div class="loader"></div>
+                    <div id="loadingTitle">正在生成题目...</div>
+                    <div id="loadingSubtitle">正在构建知识图谱与题目结构</div>
+                    <div class="fake-progress-wrap" id="fakeProgressWrap">
+                        <div class="fake-progress-track">
+                            <div class="fake-progress-bar" id="fakeProgressBar"></div>
+                        </div>
+                        <div class="fake-progress-text" id="fakeProgressText">0%</div>
+                    </div>
+                </div>
+
+                <div class="panel-title result-title">
+                    <span class="title-bar" aria-hidden="true"></span>
+                    <h2>归因追分结果</h2>
+                </div>
+
+                <div class="question-select-mode" id="selectMode">
+                    <div class="empty-state">
+                        <div class="empty-mark">✓</div>
+                        <strong>先上传 1 道错题</strong>
+                        <span>AI 会自动拆解考点、判断错因，并生成三类训练矩阵。</span>
+                    </div>
+                </div>
+
+                <div class="compose-bar" id="composeBar" style="display:none">
+                    <div class="compose-left">
+                        <button class="btn-select-all" id="selectAllBtn" type="button">全选</button>
+                        <span class="count">已选 <span id="selectedCount">0</span> 题</span>
+                    </div>
+                    <button class="btn-compose" id="composeBtn" disabled>组卷</button>
+                </div>
+
+                <div class="a4-paper" id="paper">
+                    <div class="seal-line"><div class="seal-text">密封线内不要答题</div></div>
+                    <div class="exam-header">
+                        <div class="secret-mark">绝密 ★ 启用前</div>
+                        <div class="exam-title" id="paperTitle" contenteditable="true" title="点击修改标题">试卷预览</div>
+                        <div class="title-edit-hint" id="titleEditHint">点击标题可自定义修改</div>
+                        <div class="exam-info">
+                            姓名：<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            班级：<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            考号：<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        </div>
+                    </div>
+                    <div id="examContent"></div>
+                    <div class="answer-key" id="answerArea">
+                        <div class="group-title">参考答案与解析</div>
+                        <div id="answerContent"></div>
+                    </div>
+                </div>
+
+                <div class="preview-bottom-bar" id="downloadBar">
+                    <button class="bar-btn" id="backToMatrixBtn">返回矩阵</button>
+                    <button class="bar-btn primary" id="exportPdfBtn">下载 PDF</button>
+                    <button class="bar-btn primary" id="exportWordBtn">下载 WORD</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-box">
+            <button class="modal-close">×</button>
+            <div class="modal-title">联系赛博工头</div>
+            <div class="modal-copy">联系购买正式版，解锁无限使用次数和定制服务。</div>
+            <img src="https://placehold.co/240x240?text=WeChat" alt="赛博工头微信" class="qrcode-img">
+        </div>
+    </div>
+
+    <script>
+      window.__HZQ_ALLOW_DEVTOOLS__ = true;
+    </script>
+    <script src="/shared/hzq.js?v=20260610pay"></script>
+    <script>
+      if (window.HZQ && typeof window.HZQ.init === 'function') {
+        window.HZQ.init('错题举一反三');
+      }
+      window.apiFetch = window.apiFetch || function(url, options) { return fetch(url, options); };
+      window.ensureRequestToken = window.ensureRequestToken || function() { return Promise.resolve(''); };
+    </script>
+    <script type="module" src="./app-entry.js?v=20260628matrix"></script>
+</body>
+</html>

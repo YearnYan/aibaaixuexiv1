@@ -1,0 +1,16 @@
+**/node_modules/
+**/.next/
+**/.playwright-cli/
+**/.learnings/ssh-runtime/
+**/dist/
+**/dist-server/
+**/build/
+**/.server-dist/
+**/tmp/
+**/data/
+**/.env
+**/.env.local
+output/playwright/
+*.log
+.DS_Store
+Thumbs.db

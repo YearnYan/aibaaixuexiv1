@@ -1,0 +1,8 @@
+node_modules/
+.env
+npm-debug.log*
+.DS_Store
+output/
+.playwright-cli/
+.learnings/
+UI.png

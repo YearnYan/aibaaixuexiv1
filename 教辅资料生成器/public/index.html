@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图老师/教辅资料生成器</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/styles.css" />
+      <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+  </head>
+  <body>
+    <div class="app generator-app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div class="brand-copy">
+            <h1>图老师/教辅资料生成器</h1>
+            <p class="generation-cost-tip">生成1张图1积分，生成失败会退还相应积分。</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="user-badge" id="userBadge">未登录</span>
+          <button class="ghost-button" type="button" id="authButton">登录/注册</button>
+          <button class="ghost-button" type="button" id="redeemButton">兑换积分</button>
+          <a class="ghost-button" href="https://catfk.com/shop/GPI193OS" target="_blank" rel="noopener">购买积分</a>
+          <button class="ghost-button" type="button" id="logoutButton" hidden>退出</button>
+          <button class="ghost-button" type="button" id="clearButton">清空</button>
+          <button class="ghost-button" type="button" id="downloadAllButton">下载全部</button>
+        </div>
+      </header>
+
+      <div class="workspace-layout">
+        <aside class="control-panel" aria-label="生成设置">
+          <h2 class="panel-title">生成设置</h2>
+          <form id="generatorForm">
+            <label class="field">
+              <span>填写提示词</span>
+              <textarea
+                id="prompt"
+                name="prompt"
+                rows="7"
+                maxlength="2000"
+                placeholder="请填写你的需求，用大白话即可，越具体效果越好"
+                required
+              ></textarea>
+            </label>
+
+            <div class="field-grid" hidden aria-hidden="true">
+              <label class="field">
+                <span>资料类型</span>
+                <select id="materialType" name="materialType">
+                  <option value="" selected>不限类型</option>
+                  <option>课堂练习单</option>
+                  <option>预习单</option>
+                  <option>复习清单</option>
+                  <option>知识卡片</option>
+                  <option>思维导图</option>
+                  <option>课堂活动页</option>
+                  <option>讲解海报</option>
+                  <option>错题订正单</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>使用场景</span>
+                <select id="scenario" name="scenario">
+                  <option value="" selected>不限场景</option>
+                  <option>课堂讲练</option>
+                  <option>课前预习</option>
+                  <option>课后作业</option>
+                  <option>单元复习</option>
+                  <option>小组活动</option>
+                  <option>家校沟通</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="upload-pair">
+              <div class="upload-block">
+                <strong class="upload-label">知识库文件上传</strong>
+                <section class="upload-zone" id="knowledgeUploadZone">
+                  <input
+                    id="knowledgeInput"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,.txt,.md,.csv,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp,text/plain,text/markdown,text/csv"
+                    multiple
+                  />
+                  <div>
+                    <span>上传 PDF/Word/PNG/JPG</span>
+                  </div>
+                </section>
+                <div class="knowledge-strip" id="knowledgeStrip" aria-live="polite"></div>
+              </div>
+
+              <div class="upload-block">
+                <strong class="upload-label">参考风格上传</strong>
+                <section class="upload-zone" id="styleUploadZone">
+                  <input id="referenceInput" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+                  <div>
+                    <span>上传 PNG/JPG/WebP</span>
+                  </div>
+                </section>
+                <div class="reference-strip" id="referenceStrip" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <label class="field count-field">
+              <span class="count-label">
+                批量数量
+                <strong>（可选，不建议填写数量，建议由 AI 智能判断，更精确）</strong>
+              </span>
+              <div class="number-row">
+                <input
+                  id="count"
+                  name="count"
+                  type="number"
+                  min="1"
+                  max="120"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="建议留空，由 AI 智能判断"
+                />
+                <span>张</span>
+              </div>
+            </label>
+
+            <div class="field-grid aspect-grid">
+              <label class="field">
+                <span>图片比例</span>
+                <select id="aspectRatio" name="aspectRatio">
+                  <option value="16:9">16:9</option>
+                  <option value="9:16" selected>9:16</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="1:1">1:1</option>
+                  <option value="1:1.4142">A4（1:1.4142）</option>
+                  <option value="reference">与参考图比例一致</option>
+                  <option value="custom">自定义比例</option>
+                </select>
+              </label>
+
+              <label class="field custom-ratio-field" id="customRatioField" hidden>
+                <span>自定义比例</span>
+                <input
+                  id="customAspectRatio"
+                  name="customAspectRatio"
+                  type="text"
+                  inputmode="decimal"
+                  maxlength="16"
+                  placeholder="例如 2:1 或 1.6:1"
+                />
+              </label>
+            </div>
+
+            <label class="layout-lock">
+              <input id="layoutFixed" name="layoutFixed" type="checkbox" checked />
+              <span class="layout-lock-box" aria-hidden="true"></span>
+              <span class="layout-lock-copy">
+                <strong>排版设计固定</strong>
+              </span>
+            </label>
+
+            <button class="secondary-button" type="button" id="ruleButton" hidden aria-hidden="true">
+              生成规则确认
+            </button>
+
+            <section class="rule-panel" id="rulePanel" aria-live="polite" hidden aria-hidden="true"></section>
+
+            <button class="primary-button" type="submit" id="generateButton">
+              生成教辅图片
+            </button>
+          </form>
+        </aside>
+
+        <main class="result-panel" aria-live="polite">
+          <section class="workspace-head">
+            <div>
+              <p class="eyebrow">生成结果</p>
+            </div>
+            <div class="batch-summary" id="batchSummary">等待生成</div>
+          </section>
+
+          <section class="result-grid" id="resultGrid">
+            <article class="sample-tile">
+              <div class="sample-sheet language">
+                <span>语文预习单</span>
+                <strong>荷花</strong>
+                <i></i><i></i><i></i>
+              </div>
+              <p class="sample-caption">语文预习单 / 荷花</p>
+            </article>
+            <article class="sample-tile">
+              <div class="sample-sheet math">
+                <span>数学练习</span>
+                <strong>分数加减</strong>
+                <b></b><b></b><b></b>
+              </div>
+              <p class="sample-caption">数学练习 / 分数加减</p>
+            </article>
+            <article class="sample-tile">
+              <div class="sample-sheet science">
+                <span>科学观察</span>
+                <strong>植物生长</strong>
+                <em></em><em></em><em></em>
+              </div>
+              <p class="sample-caption">科学观察 / 植物生长</p>
+            </article>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="dialog-modal planning-progress-modal" id="planningProgressModal" aria-hidden="true">
+      <div class="dialog-backdrop planning-progress-backdrop"></div>
+      <section class="dialog-shell planning-progress-shell" role="status" aria-live="polite" aria-labelledby="planningProgressTitle">
+        <p class="planning-progress-kicker">内容规划中</p>
+        <h2 id="planningProgressTitle">正在智能规划内容，制定出图计划，请稍等</h2>
+        <div class="planning-progress-track" aria-hidden="true">
+          <span></span>
+        </div>
+      </section>
+    </div>
+
+    <div class="dialog-modal plan-confirm-modal" id="planConfirmModal" aria-hidden="true">
+      <div class="dialog-backdrop plan-confirm-backdrop" data-plan-cancel></div>
+      <section class="dialog-shell plan-confirm-shell" role="dialog" aria-modal="true" aria-labelledby="planConfirmTitle">
+        <header class="plan-confirm-head">
+          <p class="eyebrow">IMAGE PLAN READY</p>
+          <h2 id="planConfirmTitle">AI 已完成出图计划</h2>
+          <p>请确认本次生成数量。修改数量后，AI 会按新数量重新规划每张图的内容。</p>
+        </header>
+        <div class="plan-confirm-body">
+          <div class="plan-confirm-count">
+            <span>建议生成</span>
+            <strong id="planConfirmSuggestedCount">0</strong>
+            <em>张</em>
+          </div>
+          <label class="field plan-confirm-field">
+            <span>最终生成图片数量</span>
+            <input id="planConfirmCountInput" type="number" min="1" max="120" step="1" inputmode="numeric" />
+            <small>数量保持不变时直接进入生成；修改后会重新执行内容规划。</small>
+          </label>
+        </div>
+        <div class="dialog-actions plan-confirm-actions">
+          <button class="secondary-button" type="button" id="planConfirmCancelButton">取消</button>
+          <button class="primary-button" type="button" id="planConfirmSubmitButton">确认数量并继续</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="dialog-modal" id="authModal" aria-hidden="true">
+      <div class="dialog-backdrop" data-auth-close></div>
+      <section class="dialog-shell" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <header class="dialog-head">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h2 id="authTitle">登录后使用</h2>
+          </div>
+          <button class="ghost-button compact" type="button" data-auth-close>关闭</button>
+        </header>
+        <div class="dialog-body">
+          <label class="field">
+            <span>账号</span>
+            <input id="authUsername" type="text" autocomplete="username" maxlength="40" />
+          </label>
+          <label class="field">
+            <span>密码</span>
+            <input id="authPassword" type="password" autocomplete="current-password" maxlength="72" />
+          </label>
+          <div class="dialog-actions">
+            <button class="primary-button" type="button" id="loginButton">登录</button>
+            <button class="secondary-button" type="button" id="registerButton">注册</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="dialog-modal" id="redeemModal" aria-hidden="true">
+      <div class="dialog-backdrop" data-redeem-close></div>
+      <section class="dialog-shell compact-dialog" role="dialog" aria-modal="true" aria-labelledby="redeemTitle">
+        <header class="dialog-head">
+          <div>
+            <p class="eyebrow">Points</p>
+            <h2 id="redeemTitle">兑换积分</h2>
+          </div>
+          <button class="ghost-button compact" type="button" data-redeem-close>关闭</button>
+        </header>
+        <div class="dialog-body">
+          <label class="field">
+            <span>积分卡密</span>
+            <input id="redeemCodeInput" type="text" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" />
+          </label>
+          <button class="primary-button" type="button" id="redeemSubmitButton">确认兑换</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="dialog-modal point-confirm-modal" id="pointConfirmModal" aria-hidden="true">
+      <div class="dialog-backdrop point-confirm-backdrop" data-point-cancel></div>
+      <section class="dialog-shell point-confirm-shell" role="dialog" aria-modal="true" aria-labelledby="pointConfirmTitle">
+        <header class="point-confirm-head">
+          <p class="eyebrow">Confirm Generation</p>
+          <h2 id="pointConfirmTitle">确认积分扣除</h2>
+        </header>
+        <div class="point-confirm-body">
+          <div class="point-confirm-number">
+            <span>本次需要扣除</span>
+            <strong id="pointConfirmCost">0</strong>
+            <em>积分</em>
+          </div>
+          <div class="point-confirm-facts">
+            <span>生成图片：<strong id="pointConfirmCount">0</strong> 张</span>
+            <span>当前积分：<strong id="pointConfirmBalance">0</strong></span>
+            <span>生成后预计剩余：<strong id="pointConfirmAfter">0</strong></span>
+          </div>
+          <p class="point-confirm-note">确认后立即开始生成；单张图片未生成成功时，会自动退回对应积分。</p>
+          <div class="point-confirm-warning" id="pointConfirmWarning" hidden>
+            <strong>不建议更改图片数量，AI已根据内容进行最佳演算</strong>
+            <p>继续修改后，系统会让 AI 按你指定的新数量重新规划每张图的内容、顺序和生图策略。</p>
+            <div class="point-confirm-warning-actions">
+              <button class="secondary-button" type="button" id="pointChangeBackButton">返回确认</button>
+              <button class="primary-button" type="button" id="pointChangeProceedButton">仍要修改</button>
+            </div>
+          </div>
+          <div class="point-confirm-warning point-insufficient-warning" id="pointInsufficientWarning" hidden>
+            <strong id="pointInsufficientMessage">当前积分不足</strong>
+            <p>你可以购买积分后重新生成，或按当前可用积分对应的图片数量继续。</p>
+            <div class="point-confirm-warning-actions">
+              <a
+                class="secondary-button"
+                id="pointInsufficientBuyButton"
+                href="https://catfk.com/shop/GPI193OS"
+                target="_blank"
+                rel="noopener"
+              >购买积分</a>
+              <button class="primary-button" type="button" id="pointInsufficientContinueButton">按现有积分继续</button>
+            </div>
+          </div>
+          <label class="point-count-editor" id="pointConfirmEditor" hidden>
+            <span>最终生成图片数量</span>
+            <input id="pointConfirmCountInput" type="number" min="1" max="120" step="1" inputmode="numeric" />
+            <small>确认修改后，AI 会基于新数量重新策划最佳内容逻辑。</small>
+          </label>
+        </div>
+        <div class="dialog-actions point-confirm-actions">
+          <button class="secondary-button" type="button" id="pointConfirmCancelButton">取消</button>
+          <button class="secondary-button" type="button" id="pointChangeCountButton">更改图片数量</button>
+          <button class="primary-button" type="button" id="pointConfirmConfirmButton">确认生成</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="preview-modal" id="previewModal" aria-hidden="true">
+      <div class="preview-backdrop" data-preview-close></div>
+      <section class="preview-shell" role="dialog" aria-modal="true" aria-label="图片预览">
+        <header class="preview-toolbar">
+          <strong id="previewTitle">图片预览</strong>
+          <div class="preview-actions">
+            <button type="button" class="preview-tool" id="zoomOutButton" aria-label="缩小">-</button>
+            <output id="zoomOutput">100%</output>
+            <button type="button" class="preview-tool" id="zoomInButton" aria-label="放大">+</button>
+            <button type="button" class="preview-tool text" id="zoomResetButton">重置</button>
+            <button type="button" class="preview-tool text" data-preview-close>关闭</button>
+          </div>
+        </header>
+        <div class="preview-stage" id="previewStage">
+          <img id="previewImage" alt="生成图片预览" draggable="false" />
+        </div>
+      </section>
+    </div>
+    <script src="/app.js?v=20260722-platform-image-path-1" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "ai-score-space-assessment",
+  "version": "1.0.0",
+  "description": "AI提分空间测评单页网站",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "html2canvas": "^1.4.1",
+    "jsonrepair": "^3.14.1",
+    "jspdf": "^4.2.1",
+    "lucide": "^0.468.0",
+    "mammoth": "^1.8.0",
+    "multer": "^2.0.2",
+    "pdf-parse": "^1.1.1",
+    "sharp": "^0.33.5"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+.learnings/
+.playwright-cli/
+.env
+.env.local
+.env.production
+server.log
+*.log
+logs/
+dist/
+build/
+.DS_Store
+Thumbs.db
+.wrangler/

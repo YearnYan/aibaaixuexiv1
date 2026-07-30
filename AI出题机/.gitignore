@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.local
+.env.production
+server/.env
+server.log
+*.log
+dist/
+build/
+.playwright-cli/
+output/
+tmp/
+.DS_Store
+Thumbs.db
+.wrangler/

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>AI 配置 · 赛博出卷机</title>
+  <link rel="stylesheet" href="ai-config.css">
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+  <main class="config-shell">
+    <header class="config-header">
+      <a class="back-link" href="/" aria-label="返回出卷机">
+        <span aria-hidden="true">←</span>
+        返回出卷机
+      </a>
+      <div class="brand-lockup">
+        <span class="brand-index">SYSTEM / 02</span>
+        <strong>AI CONFIG</strong>
+      </div>
+    </header>
+
+    <div class="config-layout">
+      <aside class="config-aside">
+        <div>
+          <p class="eyebrow">模型接入</p>
+          <h1>AI 配置</h1>
+          <p class="aside-copy">配置 OpenAI 兼容接口，保存后立即用于出题与图形生成。</p>
+        </div>
+
+        <div class="runtime-status" aria-live="polite">
+          <span class="status-dot" id="statusDot"></span>
+          <div>
+            <span class="status-label">运行状态</span>
+            <strong id="statusText">正在读取配置</strong>
+          </div>
+        </div>
+
+        <div class="security-note">
+          <span class="note-mark">LOCAL ONLY</span>
+          <p>此页面仅允许本机开发环境访问。密钥写入 <code>server/.env</code>，接口只返回脱敏结果。</p>
+        </div>
+      </aside>
+
+      <section class="config-workspace" aria-labelledby="workspaceTitle">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">运行参数</p>
+            <h2 id="workspaceTitle">连接与生成配置</h2>
+          </div>
+          <span class="key-summary" id="keySummary">0 个密钥</span>
+        </div>
+
+        <form id="aiConfigForm" novalidate>
+          <fieldset class="form-section">
+            <legend>连接信息</legend>
+            <p class="section-help">支持任何兼容 OpenAI Chat Completions 的服务。</p>
+
+            <label class="field field-wide" for="apiURL">
+              <span>API 地址</span>
+              <input id="apiURL" name="apiURL" type="url" required
+                placeholder="https://example.com/v1/chat/completions" autocomplete="url">
+              <small>可填写完整的 <code>/chat/completions</code> 地址，也可填写 <code>/v1</code> 基础地址。</small>
+            </label>
+
+            <label class="field" for="model">
+              <span>模型名称</span>
+              <input id="model" name="model" type="text" required
+                placeholder="gemini-3.1-pro-preview" autocomplete="off" spellcheck="false">
+            </label>
+
+            <label class="field key-field" for="apiKeys">
+              <span>API Key</span>
+              <div class="secret-input-wrap">
+                <input id="apiKeys" name="apiKeys" type="password"
+                  placeholder="留空则保留已有密钥" autocomplete="new-password" spellcheck="false">
+                <button class="reveal-button" id="revealKeyButton" type="button" aria-pressed="false">显示</button>
+              </div>
+              <small id="keyHint">多个密钥请用英文逗号分隔。</small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-section generation-section">
+            <legend>生成参数</legend>
+            <p class="section-help">控制回答长度与随机性，默认值适合完整试卷生成。</p>
+
+            <label class="field" for="maxTokens">
+              <span>最大输出 Token</span>
+              <input id="maxTokens" name="maxTokens" type="number" min="256" max="32000" step="1" required>
+              <small>允许范围：256–32000</small>
+            </label>
+
+            <label class="field" for="temperature">
+              <span>温度 <output id="temperatureOutput" for="temperature">0.7</output></span>
+              <input id="temperature" name="temperature" type="range" min="0" max="2" step="0.1">
+              <small>数值越低越稳定，越高越有变化。</small>
+            </label>
+          </fieldset>
+
+          <div class="form-footer">
+            <div class="feedback" id="feedback" role="status" aria-live="polite">修改参数后保存即可立即生效。</div>
+            <div class="form-actions">
+              <button class="secondary-action" id="testButton" type="button">测试连接</button>
+              <button class="primary-action" id="saveButton" type="submit">保存配置</button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="/ai-config-entry.js"></script>
+</body>
+</html>

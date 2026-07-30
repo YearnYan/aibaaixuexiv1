@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>孩子丢分CT诊断</title>
+  <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" role="img">
+          <path d="M20 6 8.5 11.2v9.1c0 7.7 4.7 12.1 11.5 15.7 6.8-3.6 11.5-8 11.5-15.7v-9.1L20 6Z" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M14 15.2h4.1c1.2 0 2.2 1 2.2 2.2V29h-4.1A4.2 4.2 0 0 1 12 24.8v-7.4c0-1.2.8-2.2 2-2.2Zm12 0h-4.1c-1.2 0-2.2 1-2.2 2.2V29h4.1A4.2 4.2 0 0 0 28 24.8v-7.4c0-1.2-.8-2.2-2-2.2Z" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="m16 20 4 3.2L24 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>孩子丢分CT诊断</h1>
+        <p>基于学业表现的丢分原因深度分析</p>
+      </div>
+    </div>
+    <div class="secure-badge">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3 5.5 5.8v5.7c0 4.8 2.8 7.7 6.5 9.5 3.7-1.8 6.5-4.7 6.5-9.5V5.8L12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="m9 12 2 2 4-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      数据安全保护中
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="input-panel" aria-labelledby="form-title">
+      <h2 id="form-title">填写信息并上传</h2>
+
+      <form id="diagnosis-form">
+        <label class="field">
+          <span>学生年级</span>
+          <select name="grade" id="grade">
+            <option>初一</option>
+            <option selected>初二</option>
+            <option>初三</option>
+            <option>高一</option>
+            <option>高二</option>
+            <option>高三</option>
+            <option>小学高年级</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>科目</span>
+          <select name="subject" id="subject">
+            <option selected>数学</option>
+            <option>语文</option>
+            <option>英语</option>
+            <option>物理</option>
+            <option>化学</option>
+            <option>生物</option>
+            <option>历史</option>
+            <option>地理</option>
+            <option>政治</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>考试/作业类型</span>
+          <select name="examType" id="exam-type">
+            <option selected>期中考试</option>
+            <option>期末考试</option>
+            <option>月考</option>
+            <option>周测</option>
+            <option>单元测试</option>
+            <option>日常作业</option>
+            <option>错题整理</option>
+          </select>
+        </label>
+
+        <div class="field">
+          <span>上传试卷或作业文件</span>
+          <label class="upload-box" id="upload-box" for="file-input" tabindex="0">
+            <input id="file-input" name="files" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" multiple>
+            <svg class="upload-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M15.5 34.5H13A9 9 0 0 1 12.4 16.6 12 12 0 0 1 35 19.8h.5A7.5 7.5 0 0 1 36 34.8h-3.3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <path d="M24 36V20m0 0-7 7m7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <strong>点击或拖拽文件到此处上传</strong>
+            <small>支持批量上传 PDF、Word、PNG、JPG<br>文件数量不限，单个不超过 50MB</small>
+            <div class="file-list" id="file-list" aria-live="polite"></div>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>补充说明 <em>（可选）</em></span>
+          <textarea id="note" name="note" maxlength="200" placeholder="如：试卷难度较大，时间紧张，粗心等"></textarea>
+          <b class="counter"><span id="note-count">0</span>/200</b>
+        </label>
+
+        <button class="primary-button" id="submit-button" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" fill="none" stroke="currentColor" stroke-width="1.9"/>
+            <path d="M14 2v6h6M9 15h6M9 18h6M9 12h2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>生成丢分诊断</span>
+        </button>
+
+        <p class="privacy">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6" y="10" width="12" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          保护隐私，文件仅用于本次诊断分析
+        </p>
+      </form>
+    </section>
+
+    <section class="report-shell" aria-labelledby="report-title">
+      <div class="scan-corner corner-top-left"></div>
+      <div class="scan-corner corner-top-right"></div>
+      <div class="scan-corner corner-bottom-left"></div>
+      <div class="scan-corner corner-bottom-right"></div>
+
+      <div class="report-inner">
+        <header class="report-heading">
+          <div class="title-line"></div>
+          <h2 id="report-title">丢分诊断分析报告</h2>
+          <div class="title-line reverse"></div>
+          <p>
+            学科：<span id="meta-subject">数学</span>
+            <i></i>
+            年级：<span id="meta-grade">初二</span>
+            <i></i>
+            类型：<span id="meta-type">期中考试</span>
+            <i></i>
+            生成时间：<span id="meta-time">2024-05-20 14:32</span>
+          </p>
+        </header>
+
+        <div class="status-message" id="status-message" role="status" aria-live="polite"></div>
+
+        <div class="report-grid">
+          <article class="radar-card">
+            <h3>五类丢分维度对比</h3>
+            <canvas id="radar-canvas" width="330" height="310" aria-label="五类丢分维度雷达图"></canvas>
+          </article>
+
+          <article class="dimension-card">
+            <div class="dimension-head">
+              <span>丢分维度</span>
+              <span>丢分占比</span>
+              <span>严重程度</span>
+              <span>优先处理建议</span>
+            </div>
+            <div id="dimension-list" class="dimension-list"></div>
+          </article>
+        </div>
+
+        <article class="table-card">
+          <h3>主要失分点分析（TOP 5）</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>失分点</th>
+                  <th>对应题号</th>
+                  <th>丢分原因归类</th>
+                  <th>丢分占比</th>
+                  <th>严重程度</th>
+                  <th>优先处理建议</th>
+                </tr>
+              </thead>
+              <tbody id="loss-table"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <section class="full-report" id="full-report" hidden>
+          <div class="full-report-grid">
+            <article>
+              <h3>综合诊断</h3>
+              <p id="overall-conclusion"></p>
+              <div class="detail-columns">
+                <div>
+                  <h4>当前优势</h4>
+                  <ul id="strength-list"></ul>
+                </div>
+                <div>
+                  <h4>主要风险</h4>
+                  <ul id="risk-list"></ul>
+                </div>
+              </div>
+            </article>
+
+            <article>
+              <h3>五维细分建议</h3>
+              <div id="detail-groups" class="detail-groups"></div>
+            </article>
+
+            <article>
+              <h3>深度诊断维度</h3>
+              <div id="professional-sections" class="professional-sections"></div>
+            </article>
+
+            <article>
+              <h3>阶段补救路径</h3>
+              <div class="plan-grid">
+                <div>
+                  <h4>7天内</h4>
+                  <ul id="plan-7"></ul>
+                </div>
+                <div>
+                  <h4>30天内</h4>
+                  <ul id="plan-30"></ul>
+                </div>
+                <div>
+                  <h4>家校协同</h4>
+                  <ul id="plan-family"></ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <div class="report-action">
+        <button class="secondary-button" id="toggle-report" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" fill="none" stroke="currentColor" stroke-width="1.9"/>
+            <path d="M14 2v6h6M9 15h6M9 18h6M9 12h2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>查看完整报告</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

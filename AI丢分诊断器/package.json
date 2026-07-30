@@ -1,0 +1,16 @@
+{
+  "name": "loss-ai-diagnosis-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "孩子丢分CT诊断单页网站",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mammoth": "^1.8.0",
+    "multer": "^2.2.0",
+    "pdf-parse": "^1.1.1"
+  }
+}

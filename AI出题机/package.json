@@ -1,0 +1,45 @@
+{
+  "name": "cyber-exam-factory",
+  "version": "1.0.0",
+  "description": "全息试卷工厂 - AI驱动的智能出卷系统",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "build:frontend": "node scripts/build-frontend.js",
+    "obfuscate:frontend": "node scripts/obfuscate-dist.js",
+    "build:worker": "node scripts/build-worker.js",
+    "build": "npm run build:frontend && npm run obfuscate:frontend && npm run build:worker",
+    "build:cf": "npm run build:frontend && npm run build:worker",
+    "deploy": "npm run build:cf && npx wrangler pages deploy dist",
+    "dev:cf": "npm run build:cf && npx wrangler pages dev dist",
+    "test": "node --test tests/*.test.js",
+    "prestart": "npm run build:frontend && npm run obfuscate:frontend"
+  },
+  "keywords": [
+    "exam",
+    "education",
+    "ai",
+    "k12"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.18.2",
+    "hono": "^4.7.0",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1",
+    "jszip": "3.10.1",
+    "katex": "^0.17.0",
+    "mathml2omml": "0.5.0",
+    "openai": "^6.32.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.4",
+    "javascript-obfuscator": "^4.1.1",
+    "nodemon": "^3.0.1",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "question-to-word-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/copy-pdf-worker.mjs",
+    "dev": "concurrently -k \"node scripts/run-vite.mjs dev --host 0.0.0.0\" \"node scripts/run-server.mjs\"",
+    "dev:client": "node scripts/run-vite.mjs dev --host 0.0.0.0",
+    "dev:server": "node scripts/run-server.mjs",
+    "start": "node scripts/run-vite.mjs start",
+    "test": "node scripts/smoke-test.mjs && node --import tsx scripts/recognition-fallback-regression.ts && node --import tsx scripts/recognition-coverage-regression.ts && node --import tsx scripts/recognition-document-budget-regression.ts && node --import tsx scripts/recognition-large-document-regression.ts && node --import tsx scripts/recognition-production-fast-path-regression.ts && node --import tsx scripts/recognition-structure-repair-regression.ts && node --import tsx scripts/recognition-resilience-regression.ts && node --import tsx scripts/recognition-recovery-budget-regression.ts && node --import tsx scripts/recognition-http1-fetch-regression.ts && node --import tsx scripts/recognition-session-regression.ts && node --import tsx scripts/docx-import-session-regression.ts && node --import tsx scripts/general-content-regression.ts && node --import tsx scripts/multi-figure-association-regression.ts && node --import tsx scripts/formula-regression.ts && node --import tsx scripts/table-figure-regression.ts && node --import tsx scripts/option-figure-regression.ts && node --import tsx scripts/figure-crop-regression.ts",
+    "test:formulas": "node --import tsx scripts/formula-regression.ts",
+    "test:tables": "node --import tsx scripts/table-figure-regression.ts",
+    "test:options": "node --import tsx scripts/option-figure-regression.ts",
+    "test:crops": "node --import tsx scripts/figure-crop-regression.ts",
+    "build": "node scripts/run-vite.mjs build",
+    "preview": "node scripts/run-vite.mjs preview --host 0.0.0.0",
+    "typecheck": "tsc -b",
+    "copy:pdf-worker": "node scripts/copy-pdf-worker.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "docx": "^9.7.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jszip": "^3.10.1",
+    "katex": "^0.16.22",
+    "lucide-react": "^0.475.0",
+    "mammoth": "^1.12.0",
+    "mathjax-full": "^3.2.2",
+    "mathml2omml": "^0.5.0",
+    "pdfjs-dist": "^6.0.227",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "study-material-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "面向学生的 AI 学习资料生成器",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "@resvg/resvg-js": "^2.6.2",
+    "docx": "^9.7.1",
+    "express": "^5.1.0",
+    "jszip": "^3.10.1",
+    "katex": "^0.17.0",
+    "mammoth": "^1.10.0",
+    "mathjax-full": "^3.2.1",
+    "multer": "^2.0.2",
+    "pdfjs-dist": "^5.4.54",
+    "playwright-core": "^1.61.1",
+    "word-extractor": "^1.0.4"
+  }
+}

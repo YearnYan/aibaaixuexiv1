@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>卷后提分</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="contact.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link rel="stylesheet" href="/shared/jx-brand.css?v=20260527readable">
+  <style>
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .report-box.dark,
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .logic-node.dark-node {
+      background: linear-gradient(145deg, #2a0509, #7f1018) !important;
+      border-color: rgba(197, 22, 29, 0.28) !important;
+      color: #fff7ed !important;
+      -webkit-text-fill-color: #fff7ed !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .report-box.dark :where(.summary, .summary-note, .report-sub, p, span, strong, small, div, label),
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .logic-node.dark-node :where(.logic-step, .logic-body, strong, span, div) {
+      color: rgba(255, 247, 237, 0.94) !important;
+      -webkit-text-fill-color: rgba(255, 247, 237, 0.94) !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .report-box.dark::before {
+      background: #ffbd58 !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root .result-panel .report-box.dark .summary-note {
+      border-top-color: rgba(255, 247, 237, 0.22) !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root #submitBtn .material-symbols-outlined {
+      display: inline-flex !important;
+      position: relative !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 38px !important;
+      height: 38px !important;
+      overflow: hidden !important;
+      border: 2px solid rgba(255, 255, 255, 0.45) !important;
+      border-radius: 10px !important;
+      background: #fff !important;
+      color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      font-family: Arial, "Microsoft YaHei", sans-serif !important;
+      font-size: 0 !important;
+      font-weight: 400 !important;
+      line-height: 1 !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 48, 0, 0.08) !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root #submitBtn .material-symbols-outlined::before {
+      content: "→" !important;
+      position: absolute !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #c5161d !important;
+      -webkit-text-fill-color: #c5161d !important;
+      font-family: Arial, "Microsoft YaHei", sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 400 !important;
+      line-height: 1 !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root #submitBtn:hover .material-symbols-outlined {
+      color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      background: #fff !important;
+      border-color: #fff !important;
+    }
+
+    body:not(.jx-home):not(.jx-about):not(.jx-admin) #root #submitBtn:hover .material-symbols-outlined::before {
+      color: #c5161d !important;
+      -webkit-text-fill-color: #c5161d !important;
+    }
+  </style>
+    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />
+      <link rel="icon" href="data:," data-aiba-icon />
+  </head>
+<body>
+  <div id="root"></div>
+  <script src="/shared/hzq.js?v=20260711-brandnav2"></script>
+  <script>
+    if (window.HZQ && typeof window.HZQ.init === "function") {
+      window.HZQ.init("卷后提分");
+    }
+  </script>
+  <script src="app.js?v=20260625fix5" defer></script>
+  <script src="pdf-export-fix.js?v=20260626pdf-module2" defer></script>
+</body>
+</html>
