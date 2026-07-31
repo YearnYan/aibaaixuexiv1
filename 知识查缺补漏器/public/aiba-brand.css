@@ -200,6 +200,29 @@ body {
   background: var(--aiba-sun-soft);
 }
 
+/* 深色板书区域必须保持高对比度，避免全局标题颜色覆盖后变成黑字。 */
+:where(.section-layout-blackboard, .blackboard-preview) {
+  color: #f4f0da !important;
+}
+:where(.section-layout-blackboard, .blackboard-preview) :where(h1, h2, h3, h4, h5, h6, p, li, span, strong, em, dt, dd) {
+  color: #f4f0da !important;
+}
+:where(.section-layout-blackboard, .blackboard-preview) :where(.variant-note, .variant-callout) {
+  color: #173f34 !important;
+  background: #fff7dc !important;
+}
+
+/* 备课器的输入台和结果头部使用深色底，字段标题不能被品牌黑色字覆盖。 */
+:where(.app-shell > .input-panel, .app-shell > .result-panel > .result-header) :where(h1, h2, h3, h4, label, .field-label, .section-heading, .result-title h1) {
+  color: #f3eee3 !important;
+}
+:where(.app-shell > .input-panel, .app-shell > .result-panel > .result-header) :where(.brand-subtitle, .result-title > div > span, .field-label small, .section-heading > .icon) {
+  color: #c9d6ce !important;
+}
+:where(.app-shell > .input-panel, .app-shell > .result-panel > .result-header) :where(.ai-badge, .secondary-button, .icon-button) {
+  color: #f3d36b !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

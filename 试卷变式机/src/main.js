@@ -32,7 +32,8 @@ const SUBJECT_SYMBOL_TOKENS = [
 const scriptPromiseCache = new Map();
 
 function apiFetch(url, options = {}) {
-    return window.fetch(url, {
+    const request = typeof window.apiFetch === 'function' ? window.apiFetch : window.fetch.bind(window);
+    return request(url, {
         ...options,
         credentials: options.credentials || 'same-origin'
     });

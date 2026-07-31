@@ -1,4 +1,5 @@
 import './style.css';
+import './security-client.js';
 import './main.js?v=20260725-editable-word-formulas';
 
 const bindEvent = (id, eventName, handler) => {

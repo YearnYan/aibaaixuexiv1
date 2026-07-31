@@ -16,15 +16,27 @@ const upload = multer({
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || process.env.BIND_HOST || "127.0.0.1";
-const AI_BASE_URL = (process.env.AI_BASE_URL || "https://cccapi.top/v1").replace(/\/$/, "");
-const AI_MODEL = process.env.AI_MODEL || "gemini-3.5-flash";
-const AI_API_KEY = process.env.AI_API_KEY;
+const AI_BASE_URL = (
+  process.env.PLATFORM_AI_BASE_URL
+  || process.env.AI_BASE_URL
+  || "https://cccapi.top/v1"
+).replace(/\/$/, "");
+const AI_MODEL = (
+  process.env.PLATFORM_AI_MODEL
+  || process.env.AI_MODEL
+  || "gemini-3.5-flash"
+).trim();
+const AI_API_KEY = String(
+  process.env.PLATFORM_AI_API_KEY
+  || process.env.AI_API_KEY
+  || ""
+).trim();
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json({ limit: "8mb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, model: AI_MODEL });
+  res.json({ ok: true, model: AI_MODEL, apiConfigured: Boolean(AI_API_KEY) });
 });
 
 app.post("/api/analyze", upload.any(), async (req, res) => {
@@ -219,20 +231,36 @@ async function createAiReport(fields, fileContext) {
   const timer = setTimeout(() => controller.abort(), 90000);
 
   try {
-    const response = await fetch(`${AI_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${AI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        messages,
-        temperature: 0.35,
-        max_tokens: 12000
-      }),
-      signal: controller.signal
+    const requestBody = JSON.stringify({
+      model: AI_MODEL,
+      messages,
+      temperature: 0.35,
+      max_tokens: 12000
     });
+    let response;
+    let lastNetworkError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        response = await fetch(`${AI_BASE_URL}/chat/completions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${AI_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: requestBody,
+          signal: controller.signal
+        });
+        break;
+      } catch (error) {
+        lastNetworkError = error;
+        if (error.name === "AbortError" || attempt === 2) break;
+        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+      }
+    }
+    if (!response) {
+      if (lastNetworkError?.name === "AbortError") throw lastNetworkError;
+      throw new Error("AI 接口网络连接失败，请确认接口地址可访问后重试");
+    }
 
     const payload = await response.json().catch(() => null);
     if (!response.ok) {

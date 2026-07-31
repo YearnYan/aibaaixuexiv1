@@ -7,6 +7,7 @@ import { sanitizeBlackboard } from './lessonText.js';
 import { isDynamicLessonDocument, lessonDocumentToText, normalizeLessonDocument } from './lessonDocument.js';
 import { RichText } from './RichText';
 import './styles.css';
+import '../aiba-brand.css';
 
 const defaultForm = {
   grade: '',

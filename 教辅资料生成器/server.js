@@ -40,8 +40,31 @@ const DEFAULT_CONTENT_UNITS_PER_TEXT_CHARS = 700;
 const RULE_PDF_PAGE_IMAGE_MAX_COUNT = 60;
 const RULE_PDF_PAGE_IMAGE_WIDTH = 720;
 const RULE_GENERATION_MAX_TOKENS = 16000;
-const AI_CONFIG_VERSION = 1;
+const AI_CONFIG_VERSION = 2;
 const IMAGE_RESOLUTION_MODES = new Set(['standard', '4k']);
+const PLATFORM_AI_SITE_DEFINITIONS = Object.freeze([
+  { id: 'AI丢分诊断器', label: 'AI丢分诊断器' },
+  { id: 'AI提分空间评测器', label: 'AI提分空间评测器' },
+  { id: 'AI错因判断器', label: 'AI错因判断器' },
+  { id: 'AI得分点拆解器', label: 'AI得分点拆解器' },
+  { id: 'AI审题器', label: 'AI审题器' },
+  { id: '卷后提分试卷分析', label: '卷后提分试卷分析' },
+  { id: '错题归因追分器', label: '错题归因追分器' },
+  { id: '知识查缺补漏器', label: '知识查缺补漏器' },
+  { id: 'AI解题步骤器', label: 'AI解题步骤器' },
+  { id: 'AI题型提分卡', label: 'AI题型提分卡' },
+  { id: '提分行动计划器', label: '提分行动计划器' },
+  { id: '考前抢分清单器', label: '考前抢分清单器' },
+  { id: '题感训练提分器', label: '题感训练提分器' },
+  { id: '错题举一反三', label: '错题举一反三' },
+  { id: '学习资料生成器', label: '学习资料生成器' },
+  { id: 'AI出题机', label: 'AI出题机' },
+  { id: '试卷变式机', label: '试卷变式机' },
+  { id: 'AI备课器', label: 'AI备课器' },
+  { id: '教辅资料生成器', label: '教辅资料生成器' },
+  { id: '试卷讲评PPT', label: '试卷讲评PPT' },
+  { id: '题卷重排WORD', label: '题卷重排WORD' },
+]);
 const POST_EXAM_ANALYSIS_COST = 1;
 const POST_EXAM_CONFIG = Object.freeze({
   grades: ['小学低年级', '小学高年级', '初一', '初二', '初三', '高一', '高二', '高三'],
@@ -185,6 +208,10 @@ const aiRouteState = {
 function createEmptyAiConfig() {
   return {
     version: AI_CONFIG_VERSION,
+    global: {
+      entries: [],
+    },
+    sites: createDefaultAiSiteConfigs(),
     rule: {
       entries: [],
     },
@@ -193,6 +220,14 @@ function createEmptyAiConfig() {
       entries: [],
     },
   };
+}
+
+function createDefaultAiSiteConfigs() {
+  return PLATFORM_AI_SITE_DEFINITIONS.map(({ id }) => ({
+    id,
+    mode: 'global',
+    entries: [],
+  }));
 }
 
 function loadAiConfig() {
@@ -1180,16 +1215,34 @@ function normalizeAiConfigForStorage(payload, options = {}) {
     return { ok: false, message: 'AI 配置必须是 JSON 对象' };
   }
 
-  const rule = normalizeAiChannelConfig(source.rule, '生成规则确认', options);
+  // v1 只有 rule/image；升级时把旧 rule 作为全局文本 AI 的初始配置。
+  const globalSource = Object.prototype.hasOwnProperty.call(source, 'global')
+    ? source.global
+    : source.rule;
+  const global = normalizeAiChannelConfig(globalSource, '全局 AI', options);
+  if (!global.ok) return global;
+
+  // rule 仍保留给教辅资料生成器使用，兼容旧版 API 和已有配置文件。
+  const ruleSource = Object.prototype.hasOwnProperty.call(source, 'rule')
+    ? source.rule
+    : { entries: global.entries };
+  const rule = normalizeAiChannelConfig(ruleSource, '生成规则确认', options);
   if (!rule.ok) return rule;
 
   const image = normalizeAiChannelConfig(source.image, 'AI 生图', options);
   if (!image.ok) return image;
 
+  const sites = normalizeAiSiteConfigs(source.sites, options);
+  if (!sites.ok) return sites;
+
   return {
     ok: true,
     config: {
       version: AI_CONFIG_VERSION,
+      global: {
+        entries: global.entries,
+      },
+      sites: sites.sites,
       rule: {
         entries: rule.entries,
       },
@@ -1199,6 +1252,39 @@ function normalizeAiConfigForStorage(payload, options = {}) {
       },
     },
   };
+}
+
+function normalizeAiSiteConfigs(source, options = {}) {
+  const input = new Map();
+  if (Array.isArray(source)) {
+    source.forEach((item) => {
+      const id = cleanText(item?.id, 80);
+      if (id) input.set(id, item);
+    });
+  } else if (source && typeof source === 'object') {
+    Object.entries(source).forEach(([id, item]) => input.set(cleanText(id, 80), item));
+  }
+
+  const sites = [];
+  for (const { id } of PLATFORM_AI_SITE_DEFINITIONS) {
+    const item = input.get(id);
+    const requestedMode = cleanText(item?.mode, 20).toLowerCase();
+    const mode = new Set(['global', 'custom', 'disabled']).has(requestedMode)
+      ? requestedMode
+      : 'global';
+    const custom = normalizeAiChannelConfig(item, `子站 ${id}`, options);
+    if (!custom.ok) return custom;
+    if (mode === 'custom' && custom.entries.length === 0 && !options.tolerateInvalid) {
+      return { ok: false, message: `子站 ${id} 选择独立配置时至少需要 1 个接口` };
+    }
+    sites.push({
+      id,
+      mode,
+      entries: mode === 'custom' ? custom.entries : [],
+    });
+  }
+
+  return { ok: true, sites };
 }
 
 function normalizeAiChannelConfig(channelConfig, label, options = {}) {
@@ -1275,6 +1361,18 @@ function normalizeApiKeyList(value) {
 function createAdminConfigResponse() {
   return {
     version: AI_CONFIG_VERSION,
+    global: {
+      entries: cloneAiEntries(aiConfig.global?.entries),
+    },
+    sites: PLATFORM_AI_SITE_DEFINITIONS.map(({ id, label }) => {
+      const site = aiConfig.sites?.find((item) => item.id === id);
+      return {
+        id,
+        label,
+        mode: site?.mode || 'global',
+        entries: cloneAiEntries(site?.entries),
+      };
+    }),
     rule: {
       entries: cloneAiEntries(aiConfig.rule?.entries),
     },

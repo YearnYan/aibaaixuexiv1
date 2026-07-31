@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const sourceTheme = path.join(rootDir, 'brand', 'aiba-brand.css');
+const sourceNav = path.join(rootDir, 'brand', 'aiba-subsite-nav.js');
 const ignoredDirectories = new Set([
   '.git',
   '.next',
@@ -39,6 +40,8 @@ for (const toolDir of toolDirectories) {
     }
     await injectThemeLink(htmlPath);
     await copyThemeNextTo(htmlPath);
+    await injectNavScript(htmlPath);
+    await copyNavNextTo(htmlPath);
     htmlCount += 1;
     themeCount += 1;
   }
@@ -82,6 +85,18 @@ async function injectThemeLink(htmlPath) {
 async function copyThemeNextTo(htmlPath) {
   const target = path.join(path.dirname(htmlPath), 'aiba-brand.css');
   await copyFile(sourceTheme, target);
+}
+
+async function injectNavScript(htmlPath) {
+  const html = await readFile(htmlPath, 'utf8');
+  if (!html.includes('</head>') || html.includes('data-aiba-subsite-nav')) return;
+  const script = '    <script src="./aiba-subsite-nav.js" data-aiba-subsite-nav defer></script>\n';
+  await writeFile(htmlPath, html.replace('</head>', `${script}  </head>`), 'utf8');
+}
+
+async function copyNavNextTo(htmlPath) {
+  const target = path.join(path.dirname(htmlPath), 'aiba-subsite-nav.js');
+  await copyFile(sourceNav, target);
 }
 
 async function syncNextTheme() {

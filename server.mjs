@@ -175,8 +175,9 @@ function startToolProcess(tool) {
     cwd,
     env: {
       ...process.env,
-      ...loadPlatformAiEnvironment(),
+      ...loadPlatformAiEnvironment(tool.name),
       ...tool.env,
+      AIBA_HOME_URL: process.env.AIBA_HOME_URL || `http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port}/`,
       PORT: String(tool.port),
       HOST: toolBindHost,
       BIND_HOST: toolBindHost,
@@ -195,29 +196,55 @@ function startToolProcess(tool) {
   });
 }
 
-function loadPlatformAiEnvironment() {
+function loadPlatformAiEnvironment(siteId = '') {
+  const platformEnvironment = { PLATFORM_MODE: '1' };
   const configPath = path.join(rootDir, '教辅资料生成器', 'data', 'ai-config.json');
-  if (!existsSync(configPath)) return {};
+  if (!existsSync(configPath)) return platformEnvironment;
 
   try {
     const config = JSON.parse(readFileSync(configPath, 'utf8'));
-    const entries = Array.isArray(config?.rule?.entries) ? config.rule.entries : [];
+    const globalEntries = Array.isArray(config?.global?.entries)
+      ? config.global.entries
+      : (Array.isArray(config?.rule?.entries) ? config.rule.entries : []);
+    const siteConfig = Array.isArray(config?.sites)
+      ? config.sites.find((item) => item?.id === siteId)
+      : config?.sites?.[siteId];
+    const entries = siteConfig?.mode === 'disabled'
+      ? []
+      : siteConfig?.mode === 'custom' && Array.isArray(siteConfig.entries)
+        ? siteConfig.entries
+        : globalEntries;
     const entry = entries.find((item) => {
       const keys = Array.isArray(item?.apiKeys) ? item.apiKeys : [];
       return item?.baseUrl && item?.model && keys.some((key) => String(key || '').trim());
     });
-    if (!entry) return {};
+    if (!entry) return platformEnvironment;
 
     const apiKeys = entry.apiKeys.map((key) => String(key || '').trim()).filter(Boolean);
+    const baseUrl = String(entry.baseUrl).replace(/\/+$/u, '');
+    const model = String(entry.model);
     return {
+      ...platformEnvironment,
+      PLATFORM_AI_PROXY: '1',
+      PLATFORM_AI_BASE_URL: baseUrl,
+      PLATFORM_AI_API_KEY: apiKeys[0],
+      PLATFORM_AI_API_KEYS: apiKeys.join(','),
+      PLATFORM_AI_MODEL: model,
       AI_API_KEY: apiKeys[0],
       AI_API_KEYS: apiKeys.join(','),
-      AI_API_URL: String(entry.baseUrl).replace(/\/+$/u, ''),
-      AI_MODEL: String(entry.model),
+      AI_API_URL: baseUrl,
+      AI_BASE_URL: baseUrl,
+      AI_MODEL: model,
+      CCC_API_KEY: apiKeys[0],
+      CCC_API_URL: baseUrl,
+      CCC_MODEL: model,
+      OPENAI_API_KEY: apiKeys[0],
+      OPENAI_BASE_URL: baseUrl,
+      OPENAI_MODEL: model,
     };
   } catch (error) {
     console.error(`平台 AI 配置读取失败：${error.message}`);
-    return {};
+    return platformEnvironment;
   }
 }
 

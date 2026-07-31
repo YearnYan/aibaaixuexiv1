@@ -5,6 +5,15 @@ import {
   showAdminToast,
 } from './admin-common.js';
 
+const SITE_DEFINITIONS = [
+  'AI丢分诊断器', 'AI提分空间评测器', 'AI错因判断器', 'AI得分点拆解器',
+  'AI审题器', '卷后提分试卷分析', '错题归因追分器', '知识查缺补漏器',
+  'AI解题步骤器', 'AI题型提分卡', '提分行动计划器', '考前抢分清单器',
+  '题感训练提分器', '错题举一反三', '学习资料生成器', 'AI出题机',
+  '试卷变式机', 'AI备课器', '教辅资料生成器', '试卷讲评PPT', '题卷重排WORD',
+];
+const SITE_MODES = new Set(['global', 'custom', 'disabled']);
+
 const state = {
   config: createEmptyConfig(),
   saving: false,
@@ -14,9 +23,11 @@ const saveButton = document.querySelector('#saveConfigButton');
 const reloadButton = document.querySelector('#reloadConfigButton');
 const imageResolution = document.querySelector('#imageResolution');
 const providerLists = {
+  global: document.querySelector('#globalProviderList'),
   rule: document.querySelector('#ruleProviderList'),
   image: document.querySelector('#imageProviderList'),
 };
+const siteConfigList = document.querySelector('#siteConfigList');
 
 saveButton.addEventListener('click', saveConfig);
 reloadButton.addEventListener('click', loadConfig);
@@ -26,7 +37,8 @@ imageResolution.addEventListener('change', () => {
 
 document.querySelectorAll('[data-add-entry]').forEach((button) => {
   button.addEventListener('click', () => {
-    state.config[button.dataset.addEntry].entries.push(createBlankEntry());
+    const channel = button.dataset.addEntry;
+    state.config[channel].entries.push(createBlankEntry());
     renderConfig();
   });
 });
@@ -38,7 +50,7 @@ createAdminSession({
   },
   onUnauthorized: () => {
     saveButton.disabled = true;
-    clearProviderLists();
+    clearConfigLists();
   },
 });
 
@@ -63,10 +75,9 @@ async function saveConfig() {
   saveButton.disabled = true;
   setAdminStatus('正在保存 AI 配置');
   try {
-    const payload = collectConfig();
     const data = await requestJson('/api/admin/ai-config', {
       method: 'PUT',
-      body: payload,
+      body: collectConfig(),
     });
     state.config = normalizeConfig(data.config);
     renderConfig();
@@ -82,19 +93,91 @@ async function saveConfig() {
 
 function renderConfig() {
   imageResolution.value = state.config.image.resolution;
+  renderChannel('global');
   renderChannel('rule');
   renderChannel('image');
+  renderSites();
 }
 
 function renderChannel(channel) {
   const target = providerLists[channel];
   target.innerHTML = '';
   state.config[channel].entries.forEach((entry, index) => {
-    target.appendChild(createProviderCard(channel, entry, index));
+    target.appendChild(createProviderCard(entry, index, {
+      onRemove: () => {
+        state.config[channel].entries.splice(index, 1);
+        if (state.config[channel].entries.length === 0) {
+          state.config[channel].entries.push(createBlankEntry());
+        }
+        renderConfig();
+      },
+    }));
   });
 }
 
-function createProviderCard(channel, entry, index) {
+function renderSites() {
+  siteConfigList.innerHTML = '';
+  state.config.sites.forEach((site) => {
+    const card = document.createElement('article');
+    card.className = 'site-config-card';
+
+    const head = document.createElement('div');
+    head.className = 'site-config-head';
+    const title = document.createElement('strong');
+    title.textContent = site.id;
+
+    const modeField = document.createElement('label');
+    modeField.className = 'compact-select';
+    const modeTitle = document.createElement('span');
+    modeTitle.textContent = 'AI 来源';
+    const mode = document.createElement('select');
+    mode.innerHTML = '<option value="global">跟随全局 AI</option><option value="custom">独立配置</option><option value="disabled">停用 AI</option>';
+    mode.value = site.mode;
+    mode.addEventListener('change', () => {
+      site.mode = SITE_MODES.has(mode.value) ? mode.value : 'global';
+      if (site.mode !== 'custom') site.entries = [];
+      renderSites();
+    });
+    modeField.append(modeTitle, mode);
+    head.append(title, modeField);
+    card.append(head);
+
+    const description = document.createElement('p');
+    description.className = 'site-config-description';
+    description.textContent = site.mode === 'global'
+      ? '当前使用全局 AI 配置。'
+      : site.mode === 'custom'
+        ? '当前使用该子站自己的接口池。'
+        : '该子站不会注入平台 AI 配置。';
+    card.append(description);
+
+    if (site.mode === 'custom') {
+      const list = document.createElement('div');
+      list.className = 'provider-list site-provider-list';
+      site.entries.forEach((entry, index) => {
+        list.appendChild(createProviderCard(entry, index, {
+          onRemove: () => {
+            site.entries.splice(index, 1);
+            renderSites();
+          },
+        }));
+      });
+      const addButton = document.createElement('button');
+      addButton.className = 'admin-button admin-button-light site-add-button';
+      addButton.type = 'button';
+      addButton.textContent = site.entries.length ? '新增独立 URL' : '填写独立 AI';
+      addButton.addEventListener('click', () => {
+        site.entries.push(createBlankEntry());
+        renderSites();
+      });
+      card.append(list, addButton);
+    }
+
+    siteConfigList.appendChild(card);
+  });
+}
+
+function createProviderCard(entry, index, { onRemove } = {}) {
   const card = document.createElement('article');
   card.className = 'provider-card';
 
@@ -112,11 +195,7 @@ function createProviderCard(channel, entry, index) {
   removeButton.className = 'mini-button';
   removeButton.type = 'button';
   removeButton.textContent = '移除';
-  removeButton.addEventListener('click', () => {
-    state.config[channel].entries.splice(index, 1);
-    if (state.config[channel].entries.length === 0) state.config[channel].entries.push(createBlankEntry());
-    renderConfig();
-  });
+  removeButton.addEventListener('click', onRemove);
   head.append(title, removeButton);
 
   const fields = document.createElement('div');
@@ -176,6 +255,13 @@ function createSecretField(keys, onInput) {
 
 function collectConfig() {
   return {
+    global: { entries: normalizeEntriesForSave(state.config.global.entries) },
+    sites: state.config.sites.map((site) => ({
+      id: site.id,
+      mode: site.mode,
+      entries: site.mode === 'custom' ? normalizeEntriesForSave(site.entries) : [],
+    })),
+    // 保留旧版字段，确保教辅资料生成器继续使用原有文本接口。
     rule: { entries: normalizeEntriesForSave(state.config.rule.entries) },
     image: {
       resolution: imageResolution.value === 'standard' ? 'standard' : '4k',
@@ -194,12 +280,34 @@ function normalizeEntriesForSave(entries) {
 
 function normalizeConfig(config) {
   const normalized = createEmptyConfig();
-  normalized.rule.entries = normalizeEntries(config?.rule?.entries);
+  const globalEntries = config?.global?.entries ?? config?.rule?.entries;
+  normalized.global.entries = normalizeEntries(globalEntries);
+  normalized.rule.entries = normalizeEntries(config?.rule?.entries ?? globalEntries);
   normalized.image.resolution = config?.image?.resolution === 'standard' ? 'standard' : '4k';
   normalized.image.entries = normalizeEntries(config?.image?.entries);
+  normalized.sites = normalizeSites(config?.sites);
+  if (normalized.global.entries.length === 0) normalized.global.entries.push(createBlankEntry());
   if (normalized.rule.entries.length === 0) normalized.rule.entries.push(createBlankEntry());
   if (normalized.image.entries.length === 0) normalized.image.entries.push(createBlankEntry());
   return normalized;
+}
+
+function normalizeSites(sites) {
+  const byId = new Map();
+  if (Array.isArray(sites)) {
+    sites.forEach((site) => byId.set(String(site?.id || ''), site));
+  } else if (sites && typeof sites === 'object') {
+    Object.entries(sites).forEach(([id, site]) => byId.set(id, site));
+  }
+  return SITE_DEFINITIONS.map((id) => {
+    const raw = byId.get(id);
+    const mode = SITE_MODES.has(raw?.mode) ? raw.mode : 'global';
+    return {
+      id,
+      mode,
+      entries: mode === 'custom' ? normalizeEntries(raw?.entries) : [],
+    };
+  });
 }
 
 function normalizeEntries(entries) {
@@ -217,6 +325,8 @@ function normalizeKeys(value) {
 
 function createEmptyConfig() {
   return {
+    global: { entries: [createBlankEntry()] },
+    sites: SITE_DEFINITIONS.map((id) => ({ id, mode: 'global', entries: [] })),
     rule: { entries: [createBlankEntry()] },
     image: { resolution: '4k', entries: [createBlankEntry()] },
   };
@@ -226,6 +336,7 @@ function createBlankEntry() {
   return { baseUrl: '', model: '', apiKeys: [] };
 }
 
-function clearProviderLists() {
+function clearConfigLists() {
   Object.values(providerLists).forEach((target) => { target.innerHTML = ''; });
+  siteConfigList.innerHTML = '';
 }

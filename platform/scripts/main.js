@@ -49,7 +49,22 @@ document.addEventListener('keydown', (event) => {
   closeModal(redeemModal);
 });
 
-refreshSession();
+refreshSession().finally(handleLaunchQuery);
+
+function handleLaunchQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('login') === '1') {
+    openAccountModal();
+  } else if (params.get('redeem') === '1') {
+    openRedeemModal();
+  }
+  if (params.has('login') || params.has('redeem')) {
+    params.delete('login');
+    params.delete('redeem');
+    const nextQuery = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash}`);
+  }
+}
 
 async function refreshSession() {
   try {

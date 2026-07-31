@@ -144,6 +144,14 @@ body.admin-page { background: var(--admin-bg); }
 .secret-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
 .mini-button { min-height: 30px; padding: 0 9px; border: 1px solid #cdb98e; border-radius: 6px; color: var(--admin-ink); background: #fff; font-size: 11px; font-weight: 800; }
 
+.site-config-list { display: grid; gap: 12px; }
+.site-config-card { padding: 18px 20px; border: 1px solid var(--admin-line); border-radius: 8px; background: #fff; }
+.site-config-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.site-config-head strong { font-size: 15px; }
+.site-config-description { margin: 9px 0 0; color: var(--admin-muted); font-size: 12px; line-height: 1.5; }
+.site-provider-list { margin-top: 14px; padding-top: 8px; border-top: 1px solid #eadcbb; }
+.site-add-button { margin-top: 4px; }
+
 .admin-toast { position: fixed; left: 50%; bottom: 26px; z-index: 30; max-width: calc(100% - 32px); padding: 12px 17px; border-radius: 8px; color: #fff; background: var(--admin-ink); box-shadow: 0 14px 30px rgba(0,0,0,.22); opacity: 0; transform: translate(-50%, 12px); transition: opacity 160ms ease, transform 160ms ease; pointer-events: none; }
 .admin-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
@@ -164,6 +172,9 @@ body.admin-page { background: var(--admin-bg); }
   .admin-auth-actions, .admin-form-grid, .admin-form-row { grid-template-columns: 1fr; }
   .metric-grid { grid-template-columns: 1fr 1fr; }
   .admin-toolbar, .admin-section-head, .config-channel-head { align-items: flex-start; flex-direction: column; }
+  .site-config-head { align-items: flex-start; flex-direction: column; }
+  .site-config-head .compact-select { width: 100%; }
+  .site-config-head select { width: 100%; }
   .provider-card { grid-template-columns: 38px minmax(0, 1fr); gap: 10px; }
   .config-channel-actions { width: 100%; flex-wrap: wrap; }
 }

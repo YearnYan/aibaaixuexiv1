@@ -18,9 +18,24 @@ const upload = multer({
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || process.env.BIND_HOST || "127.0.0.1";
-const API_URL = (process.env.CCC_API_URL || "https://cccapi.top/v1").replace(/\/+$/, "");
-const MODEL = process.env.CCC_MODEL || "gemini-3.5-flash";
-const API_KEY = process.env.CCC_API_KEY || "";
+const API_URL = (
+  process.env.PLATFORM_AI_BASE_URL
+  || process.env.AI_BASE_URL
+  || process.env.CCC_API_URL
+  || "https://cccapi.top/v1"
+).replace(/\/+$/, "");
+const MODEL = (
+  process.env.PLATFORM_AI_MODEL
+  || process.env.AI_MODEL
+  || process.env.CCC_MODEL
+  || "gemini-3.5-flash"
+).trim();
+const API_KEY = String(
+  process.env.PLATFORM_AI_API_KEY
+  || process.env.AI_API_KEY
+  || process.env.CCC_API_KEY
+  || ""
+).trim();
 const MAX_TEXT_CHARS = 18000;
 const DEFAULT_NEXT_SUGGESTIONS = [
   { title: "基础巩固", detail: "建议完成 8 道基础题，巩固核心等量关系。", count: "8题" },

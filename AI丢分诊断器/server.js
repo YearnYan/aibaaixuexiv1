@@ -15,6 +15,25 @@ const AI_TIMEOUT_MS = 120000;
 
 loadEnv(path.join(ROOT_DIR, ".env"));
 
+const AI_API_KEY = String(
+  process.env.PLATFORM_AI_API_KEY
+  || process.env.AI_API_KEY
+  || process.env.CCC_API_KEY
+  || ''
+).trim();
+const AI_BASE_URL = (
+  process.env.PLATFORM_AI_BASE_URL
+  || process.env.AI_BASE_URL
+  || process.env.CCC_API_URL
+  || 'https://cccapi.top/v1'
+).replace(/\/+$/, '');
+const AI_MODEL = (
+  process.env.PLATFORM_AI_MODEL
+  || process.env.AI_MODEL
+  || process.env.CCC_MODEL
+  || 'gemini-3.5-flash'
+).trim();
+
 const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -31,7 +50,8 @@ app.use(express.static(PUBLIC_DIR, {
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
-    model: process.env.AI_MODEL || "gemini-3.5-flash"
+    model: AI_MODEL,
+    apiConfigured: Boolean(AI_API_KEY)
   });
 });
 
@@ -487,7 +507,7 @@ function buildAiPayload({ grade, subject, examType, note, fileContexts }) {
     });
 
   return {
-    model: process.env.AI_MODEL || "gemini-3.5-flash",
+    model: AI_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent }
@@ -511,11 +531,11 @@ function formatBytes(bytes) {
 }
 
 async function requestAi(payload) {
-  const apiKey = process.env.CCC_API_KEY;
-  const baseUrl = (process.env.AI_BASE_URL || "https://cccapi.top/v1").replace(/\/+$/, "");
+  const apiKey = AI_API_KEY;
+  const baseUrl = AI_BASE_URL;
 
   if (!apiKey) {
-    const error = new Error("缺少 AI 接口密钥，请检查 .env 中的 CCC_API_KEY");
+    const error = new Error("缺少 AI 接口密钥，请在平台后台配置全局 AI 接口");
     error.publicMessage = error.message;
     throw error;
   }

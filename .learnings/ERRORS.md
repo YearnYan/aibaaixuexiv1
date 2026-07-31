@@ -39,6 +39,117 @@ Playwright 技能包装脚本存在于 Windows 文件系统，但当前 `bash` �
 
 ---
 
+## [ERR-20260731-001] background-server-command-policy
+
+**Logged**: 2026-07-31T21:06:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+尝试通过带重定向和复杂 PowerShell 表达式的 `Start-Process` 启动本地服务时被命令策略拦截。
+
+### Error
+
+```text
+Script error: ... rejected: blocked by policy
+```
+
+### Context
+
+- 目标是后台启动根目录的 `npm run dev`。
+- 简化为不带重定向的 `Start-Process npm.cmd -ArgumentList @('run','dev')` 后成功。
+
+### Suggested Fix
+
+后台启动本地服务时优先使用最小化的 `Start-Process` 参数；日志和健康检查分开执行。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `package.json`, `server.mjs`
+
+### Resolution
+
+- **Resolved**: 2026-07-31T21:07:00+08:00
+- **Notes**: 服务已在 4173 端口启动并通过首页 200 响应验证。
+
+---
+
+## [ERR-20260731-002] powershell-pid-variable-collision
+
+**Logged**: 2026-07-31T21:24:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+重启本地服务的 PowerShell 循环使用了保留变量名 `$PID`，导致重启步骤中断。
+
+### Error
+
+```text
+Cannot overwrite variable PID because it is read-only or constant.
+```
+
+### Context
+
+- 端口检查已确认 4173 和 5180 仍在正常监听。
+- 变量改为 `$procId` 后重新执行。
+
+### Suggested Fix
+
+PowerShell 脚本中的进程 ID 变量使用 `$procId` 等任务专用名称，避免 `$PID` 等系统变量。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `server.mjs`
+
+### Resolution
+
+- **Resolved**: 2026-07-31T21:25:00+08:00
+- **Notes**: 未造成服务中断或文件变更。
+
+---
+
+## [ERR-20260731-003] composite-restart-command-policy
+
+**Logged**: 2026-07-31T21:31:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+把服务重启、端口检查和 HTTP 检查合并为单条 PowerShell 命令时再次被命令策略拦截。
+
+### Error
+
+```text
+Script error: ... rejected: blocked by policy
+```
+
+### Context
+
+- 命令没有执行，原有服务仍保持运行。
+- 后续拆分为独立的停止、启动和健康检查步骤。
+
+### Suggested Fix
+
+涉及后台进程的操作保持命令单一职责，避免在同一条命令中叠加多段管道和网络调用。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `server.mjs`
+
+### Resolution
+
+- **Resolved**: 2026-07-31T21:32:00+08:00
+- **Notes**: 已改为分步执行，未造成服务中断。
+
+---
+
 ## [ERR-20260730-001] imagegen-custom-model-size-validation
 
 **Logged**: 2026-07-30T18:00:00+08:00

@@ -9,10 +9,8 @@
     const { protocol, hostname, port } = global.location;
     if (protocol === 'file:') return 'http://127.0.0.1:5100/api';
 
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-    if (isLocal && port !== '5100') {
-      return `${protocol}//${hostname}:5100/api`;
-    }
+    // 页面由子站自己的 HTTP 服务提供时，/api 必须保持同源；
+    // 只有直接双击 file:// 页面时才回退到传统本地端口。
     return API_PATH;
   }
 
