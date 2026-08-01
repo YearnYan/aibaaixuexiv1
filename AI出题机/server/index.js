@@ -18,7 +18,8 @@ const aiConfigRouter = require('./routes/ai-config');
 
 const app = express();
 const PORT = process.env.PORT || 5100;
-const HOST = process.env.HOST || process.env.BIND_HOST || '0.0.0.0';
+// 使用 IPv6 未指定地址监听，兼容将 localhost 解析为 ::1 的浏览器环境。
+const HOST = process.env.HOST || process.env.BIND_HOST || '::';
 
 app.disable('x-powered-by');
 app.use(cors(buildCorsOptions()));

@@ -223,6 +223,68 @@ body {
   color: #f3d36b !important;
 }
 
+/* AI 审题器使用深色工作区，顶部两级导航需要单独保持清晰对比度。 */
+body:has(.app-header) .aiba-subsite-nav.site-nav {
+  color: #f5f7f8 !important;
+  background: #111a21 !important;
+  border-bottom-color: #40545f !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand,
+body:has(.app-header) .aiba-subsite-nav .brand strong {
+  color: #f7f8f8 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand small {
+  color: #abb2b8 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button {
+  color: #e8f8fa !important;
+  border-color: #52646e !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-light {
+  background: rgba(255, 255, 255, .05) !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-light:hover {
+  color: #fff !important;
+  border-color: #16bed2 !important;
+  background: rgba(22, 190, 210, .12) !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-solid {
+  color: #07161b !important;
+  border-color: #16bed2 !important;
+  background: #16bed2 !important;
+  box-shadow: 0 12px 26px rgba(6, 184, 206, .2) !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-solid:hover {
+  color: #07161b !important;
+  border-color: #24d3e3 !important;
+  background: #24d3e3 !important;
+}
+
+body:has(.app-header) .app-header {
+  color: #f5f7f8 !important;
+  background: #111a21 !important;
+  border-bottom-color: #40545f !important;
+}
+
+body:has(.app-header) .app-header .brand-block h1 {
+  color: #f7f8f8 !important;
+}
+
+body:has(.app-header) .app-header .brand-block p {
+  color: #d5e0e4 !important;
+}
+
+body:has(.app-header) .app-header .brand-divider {
+  background: #63717a !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

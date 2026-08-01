@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const sourceTheme = path.join(rootDir, 'brand', 'aiba-brand.css');
 const sourceNav = path.join(rootDir, 'brand', 'aiba-subsite-nav.js');
+const sourceNavStyles = path.join(rootDir, 'brand', 'aiba-subsite-nav.css');
+const sourceLogo = path.join(rootDir, 'platform', 'assets', 'logo.jpg');
+const brandVersion = '20260801-brand3';
+const navVersion = '20260801-nav4';
 const ignoredDirectories = new Set([
   '.git',
   '.next',
@@ -40,14 +44,18 @@ for (const toolDir of toolDirectories) {
     }
     await injectThemeLink(htmlPath);
     await copyThemeNextTo(htmlPath);
+    await injectNavStylesheet(htmlPath);
+    await copyNavStylesNextTo(htmlPath);
     await injectNavScript(htmlPath);
     await copyNavNextTo(htmlPath);
+    await copyLogoNextTo(htmlPath);
     htmlCount += 1;
     themeCount += 1;
   }
 }
 
 await syncNextTheme();
+await syncBuiltArtifacts();
 
 console.log(`品牌主题已接入 ${htmlCount} 个 HTML 入口，写入 ${themeCount + 1} 份运行时样式。`);
 
@@ -71,15 +79,18 @@ async function findHtmlFiles(directory) {
 async function injectThemeLink(htmlPath) {
   const html = await readFile(htmlPath, 'utf8');
   if (!html.includes('</head>')) throw new Error(`HTML 缺少 </head>：${htmlPath}`);
+  const versioned = ensureBrandVersion(html);
   const additions = [];
-  if (!html.includes('rel="icon"') && !html.includes("rel='icon'")) {
+  if (!versioned.includes('rel="icon"') && !versioned.includes("rel='icon'")) {
     additions.push('    <link rel="icon" href="data:," data-aiba-icon />');
   }
-  if (!html.includes('data-aiba-brand')) {
-    additions.push('    <link rel="stylesheet" href="./aiba-brand.css" data-aiba-brand />');
+  if (!versioned.includes('data-aiba-brand')) {
+    additions.push(`    <link rel="stylesheet" href="./aiba-brand.css?v=${brandVersion}" data-aiba-brand />`);
   }
-  if (additions.length === 0) return;
-  await writeFile(htmlPath, html.replace('</head>', `${additions.join('\n')}\n  </head>`), 'utf8');
+  const next = additions.length === 0
+    ? versioned
+    : versioned.replace('</head>', `${additions.join('\n')}\n  </head>`);
+  if (next !== html) await writeFile(htmlPath, next, 'utf8');
 }
 
 async function copyThemeNextTo(htmlPath) {
@@ -87,16 +98,44 @@ async function copyThemeNextTo(htmlPath) {
   await copyFile(sourceTheme, target);
 }
 
+async function injectNavStylesheet(htmlPath) {
+  const html = await readFile(htmlPath, 'utf8');
+  if (!html.includes('</head>')) return;
+  const versioned = ensureNavStyleVersion(html);
+  if (versioned.includes('data-aiba-subsite-nav-style')) {
+    if (versioned !== html) await writeFile(htmlPath, versioned, 'utf8');
+    return;
+  }
+  const link = `    <link rel="stylesheet" href="./aiba-subsite-nav.css?v=${navVersion}" data-aiba-subsite-nav-style />\n`;
+  await writeFile(htmlPath, versioned.replace('</head>', `${link}  </head>`), 'utf8');
+}
+
 async function injectNavScript(htmlPath) {
   const html = await readFile(htmlPath, 'utf8');
-  if (!html.includes('</head>') || html.includes('data-aiba-subsite-nav')) return;
-  const script = '    <script src="./aiba-subsite-nav.js" data-aiba-subsite-nav defer></script>\n';
+  if (!html.includes('</head>')) return;
+  const versioned = ensureNavVersion(html);
+  if (versioned !== html) {
+    await writeFile(htmlPath, versioned, 'utf8');
+    return;
+  }
+  if (html.includes('data-aiba-subsite-nav')) return;
+  const script = `    <script src="./aiba-subsite-nav.js?v=${navVersion}" data-aiba-subsite-nav defer></script>\n`;
   await writeFile(htmlPath, html.replace('</head>', `${script}  </head>`), 'utf8');
 }
 
 async function copyNavNextTo(htmlPath) {
   const target = path.join(path.dirname(htmlPath), 'aiba-subsite-nav.js');
   await copyFile(sourceNav, target);
+}
+
+async function copyNavStylesNextTo(htmlPath) {
+  const target = path.join(path.dirname(htmlPath), 'aiba-subsite-nav.css');
+  await copyFile(sourceNavStyles, target);
+}
+
+async function copyLogoNextTo(htmlPath) {
+  const target = path.join(path.dirname(htmlPath), 'aiba-logo.jpg');
+  await copyFile(sourceLogo, target);
 }
 
 async function syncNextTheme() {
@@ -110,4 +149,74 @@ async function syncNextTheme() {
   if (!globals.includes(importLine)) {
     await writeFile(globalsPath, `${importLine}\n\n${globals}`, 'utf8');
   }
+}
+
+async function syncBuiltArtifacts() {
+  let count = 0;
+
+  for (const toolDir of toolDirectories) {
+    for (const outputName of ['dist', 'build']) {
+      const outputDir = path.join(toolDir, outputName);
+      const indexPath = path.join(outputDir, 'index.html');
+
+      let html;
+      try {
+        html = await readFile(indexPath, 'utf8');
+      } catch {
+        continue;
+      }
+
+      const versionedHtml = ensureNavStyleVersion(ensureBrandVersion(ensureNavVersion(html)));
+      let htmlChanged = versionedHtml !== html;
+      html = versionedHtml;
+      const additions = [];
+      if (!html.includes('data-aiba-brand')) {
+        additions.push(`    <link rel="stylesheet" href="./aiba-brand.css?v=${brandVersion}" data-aiba-brand />`);
+      }
+      if (!html.includes('data-aiba-subsite-nav-style')) {
+        additions.push(`    <link rel="stylesheet" href="./aiba-subsite-nav.css?v=${navVersion}" data-aiba-subsite-nav-style />`);
+      }
+      if (!html.includes('data-aiba-subsite-nav')) {
+        additions.push('    <script src="./aiba-subsite-nav.js" data-aiba-subsite-nav defer></script>');
+      }
+      if (additions.length > 0) {
+        if (!html.includes('</head>')) {
+          throw new Error(`生成的 HTML 缺少 </head>：${indexPath}`);
+        }
+        html = html.replace('</head>', `${additions.join('\n')}\n  </head>`);
+        htmlChanged = true;
+      }
+      if (htmlChanged) await writeFile(indexPath, html, 'utf8');
+
+      await copyFile(sourceTheme, path.join(outputDir, 'aiba-brand.css'));
+      await copyFile(sourceNav, path.join(outputDir, 'aiba-subsite-nav.js'));
+      await copyFile(sourceNavStyles, path.join(outputDir, 'aiba-subsite-nav.css'));
+      await copyFile(sourceLogo, path.join(outputDir, 'aiba-logo.jpg'));
+      count += 1;
+    }
+  }
+
+  console.log(`已同步 ${count} 个生产构建目录的品牌导航资源`);
+  return count;
+}
+
+function ensureNavVersion(html) {
+  return html.replace(
+    /(src=["'][^"']*aiba-subsite-nav\.js)(?:\?[^"']*)?(["'])/g,
+    `$1?v=${navVersion}$2`,
+  );
+}
+
+function ensureBrandVersion(html) {
+  return html.replace(
+    /(href=["'][^"']*aiba-brand\.css)(?:\?[^"']*)?(["'])/g,
+    `$1?v=${brandVersion}$2`,
+  );
+}
+
+function ensureNavStyleVersion(html) {
+  return html.replace(
+    /(href=["'][^"']*aiba-subsite-nav\.css)(?:\?[^"']*)?(["'])/g,
+    `$1?v=${navVersion}$2`,
+  );
 }
