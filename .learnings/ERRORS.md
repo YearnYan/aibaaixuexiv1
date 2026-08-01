@@ -39,6 +39,383 @@ Playwright 技能包装脚本存在于 Windows 文件系统，但当前 `bash` �
 
 ---
 
+## [ERR-20260801-008] subsite-navigation-serial-check-timeout
+
+**Logged**: 2026-08-01T21:30:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+逐页串行验证 21 个子站导航时，部分外部资源加载较慢，导致验证命令在 64 秒后超时。
+
+### Context
+
+- 并发验证已覆盖全部 21 个子站，页面均返回 200。
+- 首页、注册/登录、积分兑换三个导航地址均已核验为主站地址。
+- 5207 子站实测点击“注册/登录”可跳转主站并打开登录窗口。
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:30:00+08:00
+- **Notes**: 判定为验证脚本串行加载耗时问题，不是线上导航故障；已关闭临时 `nav-check` 浏览器会话。
+
+---
+
+## [ERR-20260801-009] playwright-cli-unsupported-option
+
+**Logged**: 2026-08-01T21:32:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+Playwright CLI 不支持传入 `--ignore-https-errors` 参数，导致一次线上冒烟检查命令未启动。
+
+### Error
+
+```text
+Unknown option: --ignore-https-errors
+```
+
+### Context
+
+- 使用 `npx --package @playwright/cli playwright-cli` 运行 Edge/Chromium 验证。
+- 该 CLI 版本不暴露该参数；命令在打开页面前即退出。
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:32:00+08:00
+- **Notes**: 改用 CLI 支持的参数重试，未对线上页面产生影响。
+
+---
+
+## [ERR-20260801-010] playwright-check-workdir-typo
+
+**Logged**: 2026-08-01T21:35:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+一次 Playwright 快照命令的工作目录少了路径分隔符，命令未执行。
+
+### Error
+
+```text
+目录名称无效。
+```
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:35:00+08:00
+- **Notes**: 修正工作目录后快照正常完成。
+
+---
+
+## [ERR-20260801-011] temp-askpass-cleanup-policy-blocked
+
+**Logged**: 2026-08-01T21:36:00+08:00
+**Priority**: medium
+**Status**: pending
+**Area**: infra
+
+### Summary
+
+删除本轮部署生成的临时 SSH 辅助文件时被本机安全策略拦截。
+
+### Context
+
+- 目标文件：`C:\Users\YearnXu\AppData\Local\Temp\aiba-ssh-askpass.exe`
+- `Remove-Item -LiteralPath ... -Force` 未执行，文件仍然存在。
+- 未尝试绕过安全策略或修改系统权限。
+
+### Suggested Fix
+
+由用户在本机确认后手动删除该临时文件。
+
+### Resolution
+
+- **Notes**: 当前未删除，待用户手动清理。
+
+---
+
+## [ERR-20260801-003] web-access-windows-bash-path
+
+**Logged**: 2026-08-01T21:00:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+在 Windows PowerShell 中调用 `web-access` 的 Bash 依赖检查脚本时，直接传入 `C:/...` 路径无法被当前 `/bin/bash` 识别。
+
+### Error
+
+```text
+/bin/bash: C:/Users/YearnXu/.codex/skills/web-access/scripts/check-deps.sh: No such file or directory
+```
+
+### Context
+
+- 脚本实际位于 Windows 文件系统 `C:\Users\YearnXu\.codex\skills\web-access\scripts\check-deps.sh`。
+- 当前 `bash` 使用 WSL 风格路径解析，Windows 盘符路径不能直接作为脚本路径。
+- 该错误仅影响浏览器依赖检查，不影响线上网站服务。
+
+### Suggested Fix
+
+在当前 Windows 环境中使用 `/mnt/c/Users/...` 路径调用 Bash 脚本；若 CDP 不可用，则按技能允许的方式使用 `curl` 做公开页面验收。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `C:/Users/YearnXu/.codex/skills/web-access/scripts/check-deps.sh`
+- See Also: ERR-20260730-014
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:01:00+08:00
+- **Notes**: 改用 WSL 路径或公开页面 HTTP 验证继续执行，不再重复使用 Windows 盘符路径调用 Bash。
+
+---
+
+## [ERR-20260801-004] web-access-wsl-runtime-mismatch
+
+**Logged**: 2026-08-01T21:03:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+`web-access` 依赖脚本在 WSL 中先受 CRLF 换行影响，转码后又因 WSL 内没有 Node.js 而无法完成 CDP 检查。
+
+### Error
+
+```text
+$'\r': command not found
+node: missing — 请安装 Node.js 22+
+```
+
+### Context
+
+- Windows 主环境已有 Node.js 24，缺失的是隔离的 WSL Node.js。
+- 用户要求使用 Edge 通道，当前会话未暴露 Chrome-use/CDP 插件接口。
+
+### Suggested Fix
+
+Windows 环境优先使用本机 Node.js 与 Playwright CLI 的 `--browser msedge`；不要为一次验收额外改造 WSL 工具链。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `C:/Users/YearnXu/.codex/skills/web-access/scripts/check-deps.sh`
+- See Also: ERR-20260801-003, ERR-20260730-014
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:05:00+08:00
+- **Notes**: 使用真实 Edge 通道完成主站、21 个子站和后台页面验收。
+
+---
+
+## [ERR-20260801-005] playwright-default-session-stale-pipe
+
+**Logged**: 2026-08-01T21:08:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+Playwright CLI 默认会话残留命名管道，导致新守护进程启动时报 `EADDRINUSE`，但默认浏览器又不可复用。
+
+### Error
+
+```text
+listen EADDRINUSE: address already in use \\.\pipe\pw-...-default
+The browser 'default' is not open
+```
+
+### Context
+
+- 该问题只影响默认会话名，不影响 Edge 浏览器本身。
+- 初次 `run-code` 还误用了语句形式；当前版本要求传入 `async page => ...` 函数。
+
+### Suggested Fix
+
+为每次验收使用独立命名会话，例如 `-s=aiba-check`，并在结束时显式 `close`。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `.playwright-cli/`
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:10:00+08:00
+- **Notes**: 命名会话正常运行并已在验收结束后关闭。
+
+---
+
+## [ERR-20260801-006] windows-openssh-askpass-and-quoting
+
+**Logged**: 2026-08-01T21:20:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+
+Windows OpenSSH 不接受 `.cmd` 作为 `SSH_ASKPASS`，且包含空格/中文的可执行路径与远程命令替换容易被本地 PowerShell 提前解析。
+
+### Error
+
+```text
+ssh_askpass: posix_spawnp: No such file or directory
+readlink : The term 'readlink' is not recognized...
+```
+
+### Context
+
+- 服务器只开放公钥/密码认证，本机公钥未授权。
+- 远程 `$(readlink ...)` 被本地 PowerShell 当作命令替换解析，实际安装命令未执行。
+
+### Suggested Fix
+
+使用无空格临时目录中的小型 `.exe` 作为 askpass，并把远程路径验证、上传、安装、重启拆成独立命令。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `scripts/deploy/production.conf`
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:25:00+08:00
+- **Notes**: 受控完成服务器更新；两个 askpass 临时文件已按绝对路径删除。
+
+---
+
+## [ERR-20260801-007] powershell-nonterminating-check-chain
+
+**Logged**: 2026-08-01T21:32:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+在子项目目录使用错误相对路径执行 `node --check`，PowerShell 仍继续执行后续构建，最终退出码掩盖了前序错误；另一次内联 Node 命令也被引号提前截断。
+
+### Error
+
+```text
+Cannot find module '...\\考前抢分清单器\\brand\\aiba-hzq-compat.js'
+window.HZQ : The term 'window.HZQ' is not recognized...
+```
+
+### Context
+
+- Next 生产构建本身成功。
+- 出错的是额外的测试辅助命令，不涉及线上代码。
+
+### Suggested Fix
+
+在多步 PowerShell 验证中逐条执行并检查退出码；相对路径以当前 `workdir` 为准，哈希计算优先使用 PowerShell 原生 API。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `brand/aiba-hzq-compat.js`, `试卷变式机/server/middleware/security.js`
+
+### Resolution
+
+- **Resolved**: 2026-08-01T21:34:00+08:00
+- **Notes**: 语法检查、Next 构建和 CSP 哈希均已用独立命令验证通过。
+
+---
+
+## [ERR-20260801-001] powershell-stdin-chinese-encoding
+
+**Logged**: 2026-08-01T20:33:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+通过 PowerShell Here-String 管道向 `node -` 传递包含中文的批量验证脚本时，中文子站名被转码为问号，导致验证请求错误地返回 404。
+
+### Error
+
+```text
+中文路径变为 AI%3F%3F...，21 个请求均返回 HTTP 404。
+```
+
+### Context
+
+- 线上首个使用预编码 URL 的子站已经验证为 `302 -> 200`。
+- 故障只发生在本地测试脚本的标准输入编码阶段，不属于线上服务故障。
+
+### Suggested Fix
+
+Windows 环境批量验证中文 URL 时，优先从 UTF-8 网页或文件中动态解析链接；如果必须内嵌文本，则使用 ASCII 安全的百分号编码或显式 UTF-8 文件输入。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `platform/index.html`
+
+### Resolution
+
+- **Resolved**: 2026-08-01T20:34:00+08:00
+- **Notes**: 改为从线上主页动态解析子站链接，不再通过 PowerShell 标准输入传递中文名称。
+
+---
+
+## [ERR-20260801-002] node-batch-check-syntax
+
+**Logged**: 2026-08-01T20:34:00+08:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+
+批量子站检查脚本在嵌套 `await fetch()` 表达式中漏写右括号，Node.js 在执行前返回语法错误。
+
+### Error
+
+```text
+SyntaxError: missing ) after argument list
+```
+
+### Context
+
+- 错误发生在一次性验证脚本，不涉及线上代码。
+- 脚本尚未发出任何网络请求，因此没有产生线上副作用。
+
+### Suggested Fix
+
+将网络响应和正文读取拆成两个命名语句，避免难以审查的嵌套 `await`。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `platform/index.html`
+
+### Resolution
+
+- **Resolved**: 2026-08-01T20:35:00+08:00
+- **Notes**: 拆分为 `response` 与 `html` 两步后，21 个子站全部通过验证。
+
+---
+
 ## [ERR-20260731-001] background-server-command-policy
 
 **Logged**: 2026-07-31T21:06:00+08:00

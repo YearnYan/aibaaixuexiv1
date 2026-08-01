@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { access, copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,9 +6,11 @@ const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const sourceTheme = path.join(rootDir, 'brand', 'aiba-brand.css');
 const sourceNav = path.join(rootDir, 'brand', 'aiba-subsite-nav.js');
 const sourceNavStyles = path.join(rootDir, 'brand', 'aiba-subsite-nav.css');
+const sourceLegacyHzq = path.join(rootDir, 'brand', 'aiba-hzq-compat.js');
+const sourceLegacyTheme = path.join(rootDir, 'brand', 'aiba-legacy-theme-compat.css');
 const sourceLogo = path.join(rootDir, 'platform', 'assets', 'logo.jpg');
 const brandVersion = '20260801-brand3';
-const navVersion = '20260801-nav4';
+const navVersion = '20260801-nav5';
 const ignoredDirectories = new Set([
   '.git',
   '.next',
@@ -49,6 +51,7 @@ for (const toolDir of toolDirectories) {
     await injectNavScript(htmlPath);
     await copyNavNextTo(htmlPath);
     await copyLogoNextTo(htmlPath);
+    await syncLegacySharedAssets(htmlPath, toolDir);
     htmlCount += 1;
     themeCount += 1;
   }
@@ -138,6 +141,36 @@ async function copyLogoNextTo(htmlPath) {
   await copyFile(sourceLogo, target);
 }
 
+async function syncLegacySharedAssets(htmlPath, toolDir, force = false) {
+  const html = await readFile(htmlPath, 'utf8');
+  const sharedDir = path.join(path.dirname(htmlPath), 'shared');
+  let sharedDirReady = false;
+
+  if (force || /\/shared\/hzq\.js(?:[?"'])/u.test(html)) {
+    await mkdir(sharedDir, { recursive: true });
+    sharedDirReady = true;
+    const target = path.join(sharedDir, 'hzq.js');
+    const source = await resolveLegacySource(path.join(toolDir, 'shared', 'hzq.js'), sourceLegacyHzq);
+    if (path.resolve(source) !== path.resolve(target)) await copyFile(source, target);
+  }
+
+  if (force || /\/shared\/jx-brand\.css(?:[?"'])/u.test(html)) {
+    if (!sharedDirReady) await mkdir(sharedDir, { recursive: true });
+    const target = path.join(sharedDir, 'jx-brand.css');
+    const source = await resolveLegacySource(path.join(toolDir, 'shared', 'jx-brand.css'), sourceLegacyTheme);
+    if (path.resolve(source) !== path.resolve(target)) await copyFile(source, target);
+  }
+}
+
+async function resolveLegacySource(preferredPath, fallbackPath) {
+  try {
+    await access(preferredPath);
+    return preferredPath;
+  } catch {
+    return fallbackPath;
+  }
+}
+
 async function syncNextTheme() {
   const appDir = path.join(rootDir, '考前抢分清单器', 'app');
   const targetTheme = path.join(appDir, 'aiba-brand.css');
@@ -192,6 +225,7 @@ async function syncBuiltArtifacts() {
       await copyFile(sourceNav, path.join(outputDir, 'aiba-subsite-nav.js'));
       await copyFile(sourceNavStyles, path.join(outputDir, 'aiba-subsite-nav.css'));
       await copyFile(sourceLogo, path.join(outputDir, 'aiba-logo.jpg'));
+      await syncLegacySharedAssets(indexPath, toolDir, true);
       count += 1;
     }
   }

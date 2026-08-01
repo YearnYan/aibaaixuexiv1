@@ -2,7 +2,7 @@
   if (!global || !global.document) return;
 
   const document = global.document;
-  const navStyleVersion = '20260801-nav4';
+  const navStyleVersion = '20260801-nav5';
   const scriptElement = document.currentScript || document.querySelector('script[data-aiba-subsite-nav]');
   const scriptUrl = scriptElement && scriptElement.src
     ? new URL(scriptElement.src, global.location.href)
@@ -24,7 +24,7 @@
       return new URL(`${global.location.protocol}//${host}:4173/`);
     }
 
-    return new URL('/', global.location.href);
+    return new URL(`${global.location.protocol}//${global.location.hostname}/`);
   }
 
   function addQuery(url, key) {

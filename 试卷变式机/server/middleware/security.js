@@ -143,7 +143,7 @@ function applySecurityHeaders(req, res, next) {
   if (isProduction) {
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+      "default-src 'self'; script-src 'self' 'sha256-FPx1+jJGd8rAGWF83QCDa4GM9v+BjSWYgOT3OonZIqU=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
     );
   }
   next();

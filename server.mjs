@@ -27,7 +27,7 @@ const toolDefinitions = [
   ['AI解题步骤器', 5209, 'server/index.js'],
   ['AI题型提分卡', 5210, 'server.js'],
   ['提分行动计划器', 5211, 'server.js'],
-  ['考前抢分清单器', 5212, 'node_modules/next/dist/bin/next', {}, ['start']],
+  ['考前抢分清单器', 5212, 'node_modules/next/dist/bin/next', {}, ['start', '-H', '127.0.0.1']],
   ['题感训练提分器', 5213, 'server.js'],
   ['错题举一反三', 5214, 'server/index.js'],
   ['学习资料生成器', 5215, 'server.js'],
@@ -82,7 +82,12 @@ if (shouldStartBackend) {
 
 const server = http.createServer(async (request, response) => {
   try {
-    const requestUrl = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`);
+    const forwardedProtocol = String(request.headers['x-forwarded-proto'] || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+    const requestProtocol = forwardedProtocol === 'https' ? 'https:' : 'http:';
+    const requestUrl = new URL(request.url || '/', `${requestProtocol}//${request.headers.host || 'localhost'}`);
     if (requestUrl.pathname.startsWith('/api/')) {
       proxyApiRequest(request, response);
       return;
