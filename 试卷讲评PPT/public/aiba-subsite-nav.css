@@ -6,9 +6,10 @@
   box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
-  width: min(1380px, calc(100% - 64px));
+  width: 100%;
   min-height: 88px;
-  margin: 0 auto;
+  margin: 0;
+  padding-inline: max(32px, calc((100vw - 1600px) / 2));
   border-bottom: 1px solid rgba(83, 52, 32, .18);
   color: #2b211d;
   background: transparent;
@@ -59,6 +60,21 @@
   gap: 10px;
 }
 
+.aiba-subsite-nav .nav-account-status {
+  max-width: min(280px, 28vw);
+  overflow: hidden;
+  color: #6b584b;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aiba-subsite-nav .nav-account-status[data-state="signed-in"] {
+  color: #247c78;
+}
+
 .aiba-subsite-nav .nav-button {
   display: inline-flex;
   align-items: center;
@@ -98,8 +114,9 @@
 
 @media (max-width: 720px) {
   .aiba-subsite-nav.site-nav {
-    width: calc(100% - 32px);
+    width: 100%;
     min-height: 74px;
+    padding-inline: 16px;
   }
 
   .aiba-subsite-nav .brand img {
@@ -117,6 +134,10 @@
 
   .aiba-subsite-nav .nav-actions {
     gap: 6px;
+  }
+
+  .aiba-subsite-nav .nav-account-status {
+    display: none;
   }
 
   .aiba-subsite-nav .nav-button {

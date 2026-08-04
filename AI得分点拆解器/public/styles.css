@@ -2159,3 +2159,56 @@ a:focus-visible,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 左侧输入区提高文字与控件对比度，避免浅色提示在淡紫背景上丢失。 */
+.input-panel {
+  color: #14203a;
+  border-color: #b6bce1;
+  background: rgba(255, 255, 255, 0.97);
+}
+
+.brand-block p,
+.settings-link,
+.form-scroll,
+.field-group label,
+.upload-label,
+.config-field > label,
+.admin-dialog label {
+  color: #34415d !important;
+}
+
+.brand-block p {
+  font-weight: 650;
+}
+
+.select-wrap select,
+.number-wrap input,
+.config-field > input,
+.secret-wrap input,
+.admin-dialog input {
+  color: #17233d;
+  border-color: #aab2da;
+  background: #ffffff;
+}
+
+.select-wrap select:hover,
+.number-wrap input:hover,
+.config-field > input:hover,
+.secret-wrap input:hover,
+.admin-dialog input:hover {
+  border-color: #767fd0;
+}
+
+.upload-zone {
+  color: #3b4864;
+  border-color: #818bb6;
+  background: #f8f9ff;
+}
+
+.upload-zone:hover,
+.upload-zone:focus-visible,
+.upload-zone.is-dragging {
+  color: #28365a;
+  border-color: #5142dc;
+  background: #f0efff;
+}

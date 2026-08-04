@@ -88,6 +88,21 @@ body {
   gap: 10px;
 }
 
+.aiba-subsite-nav .nav-account-status {
+  max-width: min(280px, 28vw);
+  overflow: hidden;
+  color: #6b584b;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aiba-subsite-nav .nav-account-status[data-state="signed-in"] {
+  color: #247c78;
+}
+
 .aiba-subsite-nav .nav-button {
   display: inline-flex;
   align-items: center;
@@ -145,6 +160,10 @@ body {
 
   .aiba-subsite-nav .nav-actions {
     gap: 6px;
+  }
+
+  .aiba-subsite-nav .nav-account-status {
+    display: none;
   }
 
   .aiba-subsite-nav .nav-button {
@@ -1606,5 +1625,20 @@ button {
     min-height: 42px;
     justify-content: flex-start;
     text-align: left;
+  }
+}
+
+/* 与主页保持一致的全宽导航：品牌贴左，账户操作贴右。 */
+.aiba-subsite-nav.site-nav {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: max(32px, calc((100vw - 1600px) / 2));
+}
+
+@media (max-width: 720px) {
+  .aiba-subsite-nav.site-nav {
+    width: 100%;
+    padding-inline: 16px;
   }
 }

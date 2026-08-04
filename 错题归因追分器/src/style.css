@@ -1395,3 +1395,197 @@ input[type="text"]:focus {
         display: none !important;
     }
 }
+
+/* 品牌暖色主题：保持信息层级，同时去掉原有冷灰、黑色工作台。 */
+:root {
+    --page: #f7f0e3;
+    --surface: #fffdf8;
+    --surface-soft: #fff8e7;
+    --ink: #2b211d;
+    --ink-soft: #59483f;
+    --muted: #705f56;
+    --line: #e6d4aa;
+    --line-strong: #d2b879;
+    --green: #247c78;
+    --green-deep: #17625f;
+    --green-soft: #e8f5ef;
+    --amber: #c98f18;
+    --amber-soft: #fff3c9;
+    --red: #9d321e;
+    --red-soft: #fff0e9;
+    --shadow: 0 18px 45px rgba(84, 51, 29, 0.1);
+}
+
+html,
+body {
+    background: #f7f0e3 !important;
+    color: #2b211d;
+}
+
+body {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(246, 195, 68, 0.14), transparent 24rem),
+        linear-gradient(180deg, #fff9e8 0%, #f2ebdf 100%) !important;
+}
+
+.app-header {
+    background: rgba(255, 249, 232, 0.96) !important;
+    border-bottom-color: #e6d4aa !important;
+}
+
+.workspace {
+    max-width: none;
+    padding-inline: max(18px, calc((100vw - 1600px) / 2));
+}
+
+.input-panel,
+.result-panel,
+.report-card,
+.analysis-card,
+.evidence-section,
+.plan-section,
+.classic-grid article,
+.executive-copy,
+.kpi-grid article {
+    border-color: #e6d4aa !important;
+    background: rgba(255, 253, 248, 0.96) !important;
+    box-shadow: 0 14px 34px rgba(84, 51, 29, 0.08);
+}
+
+.input-panel {
+    color: #2b211d !important;
+}
+
+.input-panel :where(.section-title, .field > span, .upload-field h3, .type-count-label, label) {
+    color: #2b211d !important;
+}
+
+.input-panel :where(input, select, textarea, .type-count-grid, .wrong-question-preview, .analysis-result) {
+    color: #2b211d !important;
+    border-color: #d2b879 !important;
+    background: #fff9e8 !important;
+}
+
+.input-panel :where(input, select, textarea)::placeholder {
+    color: #8b7568 !important;
+}
+
+.upload-input-large::file-selector-button {
+    border-color: #c98f18 !important;
+    color: #742113 !important;
+    background: #fff0b7 !important;
+}
+
+.section-title,
+.panel-title,
+.section-title-with-badge {
+    border-color: #e6d4aa !important;
+}
+
+.section-title {
+    color: #742113 !important;
+}
+
+.analysis-label,
+.section-title svg,
+.report-block-title svg,
+.step-content svg,
+.step-content strong span,
+.lost-score b,
+.stars {
+    color: #9d321e !important;
+}
+
+.btn-gen,
+.report-actions button {
+    color: #fffdf8 !important;
+    border-color: #742113 !important;
+    background: linear-gradient(135deg, #9d321e, #742113) !important;
+    box-shadow: 0 10px 20px rgba(116, 33, 19, 0.18) !important;
+}
+
+.btn-demo,
+.topic-add-button,
+.manual-entry-button {
+    color: #247c78 !important;
+    border-color: #247c78 !important;
+    background: #eff8f3 !important;
+}
+
+.steps-strip,
+.day-copy,
+.check-columns > div,
+.time-list div,
+.control-list div,
+.cluster-list > div,
+.evidence-table article,
+.intervention-grid article {
+    border-color: #eadcbb !important;
+    background: #fff9e8 !important;
+}
+
+.step-content p,
+.section-title span,
+.weak-copy p,
+.priority-copy p,
+.check-columns p,
+.risk-list p,
+.modal-grid p,
+.day-copy li {
+    color: #59483f !important;
+}
+
+.quality-card,
+.modal-head {
+    color: #fff9e8 !important;
+    background: linear-gradient(135deg, #742113, #9d321e) !important;
+}
+
+.quality-card p,
+.report-head p {
+    color: rgba(255, 249, 232, 0.82) !important;
+}
+
+.full-modal {
+    background: #fffdf8 !important;
+}
+
+.evidence-dimension {
+    color: #fff9e8 !important;
+    background: #8a5b24 !important;
+}
+
+/* 旧品牌兼容规则之后，导航和应用头统一回到暖米白主题。 */
+body:has(.app-header) .aiba-subsite-nav.site-nav,
+body:has(.app-header) .app-header {
+    color: #2b211d !important;
+    background: #fff9e8 !important;
+    border-bottom-color: #e6d4aa !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand,
+body:has(.app-header) .aiba-subsite-nav .brand strong,
+body:has(.app-header) .app-header .brand-copy h1 {
+    color: #2b211d !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand small,
+body:has(.app-header) .aiba-subsite-nav .nav-account-status,
+body:has(.app-header) .app-header .brand-copy p {
+    color: #705f56 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button {
+    color: #2b211d !important;
+    border-color: #cdb98e !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-light {
+    background: #fffdf8 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-solid {
+    color: #fffdf8 !important;
+    border-color: #247c78 !important;
+    background: #247c78 !important;
+}

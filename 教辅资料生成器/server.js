@@ -19,6 +19,7 @@ const MAX_BODY_BYTES = 96 * 1024 * 1024;
 const MAX_GENERATION_COUNT = 120;
 const APP_STATE_VERSION = 1;
 const SESSION_COOKIE_NAME = 'k12_session';
+const PROFILE_COOKIE_NAME = 'aiba_profile';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14;
 const PASSWORD_SALT_BYTES = 16;
 const PASSWORD_KEY_BYTES = 64;
@@ -558,9 +559,26 @@ function createSessionCookie(token) {
   return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax${secureAttribute}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
 }
 
+function createProfileCookie(user) {
+  const profile = encodeURIComponent(JSON.stringify(createPublicUser(user)));
+  const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
+  return `${PROFILE_COOKIE_NAME}=${profile}; SameSite=Lax${secureAttribute}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+}
+
 function createExpiredSessionCookie() {
   const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
   return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax${secureAttribute}; Path=/; Max-Age=0`;
+}
+
+function createExpiredProfileCookie() {
+  const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
+  return `${PROFILE_COOKIE_NAME}=; SameSite=Lax${secureAttribute}; Path=/; Max-Age=0`;
+}
+
+function createSessionHeaders(user, token) {
+  return {
+    'Set-Cookie': [createSessionCookie(token), createProfileCookie(user)],
+  };
 }
 
 function normalizeRedeemCode(value) {
@@ -932,9 +950,7 @@ async function handleRegister(req, res) {
     ok: true,
     user: createPublicUser(user),
     setupAdminCreated: user.role === 'admin',
-  }, {
-    'Set-Cookie': createSessionCookie(session.token),
-  });
+  }, createSessionHeaders(user, session.token));
 }
 
 async function handleLogin(req, res) {
@@ -956,9 +972,7 @@ async function handleLogin(req, res) {
   sendJson(res, 200, {
     ok: true,
     user: createPublicUser(user),
-  }, {
-    'Set-Cookie': createSessionCookie(session.token),
-  });
+  }, createSessionHeaders(user, session.token));
 }
 
 async function handleLogout(req, res) {
@@ -971,7 +985,7 @@ async function handleLogout(req, res) {
   sendJson(res, 200, {
     ok: true,
   }, {
-    'Set-Cookie': createExpiredSessionCookie(),
+    'Set-Cookie': [createExpiredSessionCookie(), createExpiredProfileCookie()],
   });
 }
 
@@ -982,7 +996,7 @@ function handleMe(req, res) {
     authenticated: Boolean(user),
     setupRequired: appState.users.length === 0,
     user: createPublicUser(user),
-  });
+  }, user ? { 'Set-Cookie': createProfileCookie(user) } : {});
 }
 
 async function handleRedeemPoints(req, res) {
@@ -1018,7 +1032,7 @@ async function handleRedeemPoints(req, res) {
     points: user.points,
     redeemedPoints: code.points,
     user: createPublicUser(user),
-  });
+  }, { 'Set-Cookie': createProfileCookie(user) });
 }
 
 function handleUserPointLogs(req, res) {

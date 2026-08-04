@@ -640,3 +640,124 @@ input:focus, select:focus, textarea:focus {
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
 }
+
+/* 错题举一反三采用与品牌导航一致的深黄色工作台，保证文字和控件对比度。 */
+:root {
+    --bg-dark: #fff7df;
+    --bg-panel: #fffdf7;
+    --line-blue: #9d321e;
+    --text-main: #2b211d;
+    --text-dim: #705f56;
+    --line-warm: #e6d4aa;
+}
+
+html,
+body {
+    background: #fff7df !important;
+}
+
+body {
+    color: #2b211d !important;
+    background:
+        radial-gradient(circle at 5% 0%, rgba(246, 195, 68, 0.16), transparent 24rem),
+        linear-gradient(135deg, #fff9e8 0%, #f2ead8 100%) !important;
+}
+
+.main-container {
+    padding: 20px max(18px, calc((100vw - 1600px) / 2)) 28px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1600px;
+    height: calc(100vh - 40px);
+    gap: 22px;
+}
+
+.console-panel,
+.preview-wrapper,
+.config-workspace,
+.question-select-mode,
+.a4-paper {
+    border-color: #e6d4aa !important;
+    background: rgba(255, 253, 247, 0.97) !important;
+    box-shadow: 0 16px 34px rgba(84, 51, 29, 0.1) !important;
+}
+
+.console-panel {
+    border-top-color: #c98f18 !important;
+    color: #2b211d !important;
+}
+
+.console-panel :where(h1, .section-title, label, .type-count-label, .upload-tip, .upload-status, .analysis-content, .manual-entry-hint, .scope-intro) {
+    color: #2b211d !important;
+    -webkit-text-fill-color: #2b211d !important;
+}
+
+.console-panel :where(input, select, textarea, .type-count-grid, .wrong-question-preview, .analysis-result) {
+    color: #2b211d !important;
+    border-color: #d2b879 !important;
+    background: #fff9e8 !important;
+}
+
+.console-panel :where(input, select, textarea)::placeholder {
+    color: #8b7568 !important;
+}
+
+.section-title {
+    border-bottom-color: #e6d4aa !important;
+}
+
+.console-panel h1,
+.analysis-label,
+.workspace-kicker,
+.workspace-heading h2,
+.section-title-with-badge > span:first-child {
+    color: #742113 !important;
+}
+
+.btn-gen {
+    color: #fffdf8 !important;
+    border-color: #742113 !important;
+    background: linear-gradient(135deg, #9d321e, #742113) !important;
+    box-shadow: 0 12px 24px rgba(116, 33, 19, 0.2) !important;
+}
+
+.btn-demo,
+.topic-add-button,
+.manual-entry-button,
+.bar-btn:not(.primary) {
+    color: #247c78 !important;
+    border-color: #247c78 !important;
+    background: #eff8f3 !important;
+}
+
+.config-workspace,
+.topic-card,
+.workspace-empty,
+.compose-bar,
+.question-card,
+.preview-bottom-bar {
+    border-color: #eadcbb !important;
+    background: #fff9e8 !important;
+    color: #2b211d !important;
+}
+
+.topic-card:hover,
+.question-card:hover {
+    border-color: #c98f18 !important;
+    box-shadow: 0 12px 26px rgba(157, 50, 30, 0.12) !important;
+}
+
+.preview-wrapper :where(h1, h2, h3, h4, strong, .q-stem, .q-option, .workspace-empty strong) {
+    color: #2b211d !important;
+}
+
+.preview-wrapper :where(p, span, .q-meta, .workspace-empty p) {
+    color: #59483f !important;
+}
+
+.bar-btn.primary {
+    color: #fffdf8 !important;
+    background: #742113 !important;
+}

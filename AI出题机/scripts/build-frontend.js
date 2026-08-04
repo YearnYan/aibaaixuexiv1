@@ -7,6 +7,7 @@ const srcDir = path.join(projectRoot, 'src');
 const distDir = path.join(projectRoot, 'dist');
 const assetsDir = path.join(distDir, 'assets');
 const navSource = path.resolve(projectRoot, '..', 'brand', 'aiba-subsite-nav.js');
+const navCssSource = path.resolve(projectRoot, '..', 'brand', 'aiba-subsite-nav.css');
 const themeSource = path.resolve(projectRoot, '..', 'brand', 'aiba-brand.css');
 
 const pages = [
@@ -72,7 +73,9 @@ async function buildFrontend() {
   await fs.promises.rm(distDir, { recursive: true, force: true });
   await fs.promises.mkdir(assetsDir, { recursive: true });
   await fs.promises.copyFile(navSource, path.join(distDir, 'aiba-subsite-nav.js'));
+  await fs.promises.copyFile(navCssSource, path.join(distDir, 'aiba-subsite-nav.css'));
   await fs.promises.copyFile(themeSource, path.join(distDir, 'aiba-brand.css'));
+  await fs.promises.copyFile(path.join(srcDir, 'aiba-logo.jpg'), path.join(distDir, 'aiba-logo.jpg'));
 
   const buildResult = await esbuild.build({
     entryPoints: pages.map((page) => page.entryPoint),

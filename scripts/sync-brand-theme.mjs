@@ -10,7 +10,7 @@ const sourceLegacyHzq = path.join(rootDir, 'brand', 'aiba-hzq-compat.js');
 const sourceLegacyTheme = path.join(rootDir, 'brand', 'aiba-legacy-theme-compat.css');
 const sourceLogo = path.join(rootDir, 'platform', 'assets', 'logo.jpg');
 const brandVersion = '20260801-brand3';
-const navVersion = '20260801-nav5';
+const navVersion = '20260804-nav6';
 const ignoredDirectories = new Set([
   '.git',
   '.next',

@@ -1658,3 +1658,289 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 品牌工作台主题：用暖米白、青绿和深棕替代黑灰背景，并为导航下方留出呼吸空间。 */
+:root {
+  --bg: #f4eee4;
+  --bg-panel: #fffaf2;
+  --panel-border: #d8bd8e;
+  --muted-on-dark: #705f56;
+  --paper: #fffdf8;
+  --ink: #2b211d;
+  --muted: #705f56;
+  --line: #e6d4aa;
+  --cyan: #247c78;
+  --cyan-bright: #2f9c92;
+}
+
+html,
+body {
+  background: #f4eee4;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(246, 195, 68, 0.16), transparent 24rem),
+    linear-gradient(135deg, #f8f1e6 0%, #edf6f0 100%);
+}
+
+.app-shell {
+  color: #2b211d;
+}
+
+.app-header {
+  height: 82px;
+  padding: 14px max(24px, calc((100vw - 1600px) / 2));
+  background: rgba(255, 249, 232, 0.96);
+  border-bottom: 1px solid #e6d4aa;
+}
+
+.brand-block h1 {
+  color: #742113;
+}
+
+.brand-divider {
+  background: #d9bd74;
+}
+
+.brand-block p {
+  color: #705f56;
+}
+
+.header-icon-button {
+  color: #247c78;
+}
+
+.header-icon-button:hover {
+  color: #742113;
+  border-color: #d9bd74;
+  background: #fff4cc;
+}
+
+.workspace {
+  height: calc(100svh - 82px);
+  min-height: 620px;
+  padding: 20px max(18px, calc((100vw - 1600px) / 2)) 26px;
+  gap: 18px;
+}
+
+.input-panel,
+.result-panel {
+  border-radius: 10px;
+  border-color: #d8bd8e;
+  box-shadow: 0 16px 34px rgba(84, 51, 29, 0.1);
+}
+
+.input-panel {
+  padding: 24px 22px 22px;
+  color: #2b211d;
+  background: rgba(255, 253, 248, 0.96);
+  scrollbar-color: #c9a86a transparent;
+}
+
+.input-panel :where(.field-label, .notes-heading > span, .upload-zone, .upload-zone span, .selected-file, .textarea-shell > span) {
+  color: #59483f !important;
+}
+
+.input-panel :where(.field-label, .upload-label) {
+  color: #2b211d !important;
+}
+
+.input-panel :where(.select-shell, .textarea-shell textarea) {
+  color: #2b211d;
+  border-color: #cdb98e;
+  background: #fffdf8;
+}
+
+.input-panel :where(.select-shell select, .textarea-shell textarea) {
+  color: #2b211d;
+}
+
+.input-panel :where(.select-shell:focus-within, .textarea-shell textarea:focus) {
+  border-color: #247c78;
+  box-shadow: 0 0 0 3px rgba(36, 124, 120, 0.13);
+}
+
+.upload-zone {
+  border-color: #c9a86a;
+  background: #fff8e7;
+}
+
+.upload-zone:hover,
+.upload-zone.is-dragging {
+  color: #742113 !important;
+  border-color: #247c78;
+  background: #eff8f3;
+}
+
+.analyze-button {
+  color: #fffdf8;
+  background: linear-gradient(105deg, #9d321e 0%, #742113 100%);
+  box-shadow: 0 12px 28px rgba(116, 33, 19, 0.18);
+}
+
+.analyze-button:hover:not(:disabled) {
+  box-shadow: 0 15px 32px rgba(116, 33, 19, 0.24);
+}
+
+.result-panel {
+  background: #fffdf8;
+  border-color: #e3d3b0;
+}
+
+.result-heading-row h2,
+.result-panel :where(h3, h4, strong) {
+  color: #2b211d;
+}
+
+@media (max-width: 720px) {
+  .app-header {
+    padding-inline: 16px;
+  }
+
+  .workspace {
+    height: auto;
+    min-height: calc(100svh - 74px);
+    padding: 14px 12px 20px;
+  }
+}
+
+/* 左侧资料模块统一边框、背景和间距，保证深色工作区中的层级清晰。 */
+.workspace {
+  padding-inline: 20px;
+  gap: 18px;
+}
+
+.input-panel {
+  padding: 26px 22px 24px;
+  border: 1px solid #3e6974;
+  border-radius: 10px;
+  background: #182832;
+  box-shadow: 0 16px 34px rgba(3, 13, 18, 0.22);
+}
+
+.field-label {
+  color: #f4fbfc;
+}
+
+.select-shell {
+  border-color: #597784;
+  background: #12212a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.select-shell:hover {
+  border-color: #7ca7b0;
+  background: #142731;
+}
+
+.select-shell:focus-within {
+  border-color: #25cfe0;
+  box-shadow: 0 0 0 3px rgba(37, 207, 224, 0.15);
+}
+
+.select-shell select {
+  color: #f0f8f9;
+}
+
+.upload-zone {
+  color: #c7d5d9;
+  border-color: #6a8992;
+  background: #13232c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.upload-zone:hover,
+.upload-zone.is-dragging {
+  color: #e6fdff;
+  border-color: #25d1e1;
+  background: rgba(37, 207, 224, 0.1);
+}
+
+.textarea-shell {
+  border-color: #597784;
+  background: #12212a;
+}
+
+.textarea-shell:focus-within {
+  border-color: #25cfe0;
+  box-shadow: 0 0 0 3px rgba(37, 207, 224, 0.15);
+}
+
+/* 最终覆盖：旧版深色兼容规则之后仍保持暖米白与青绿色主题。 */
+body:has(.app-header) {
+  color: #2b211d;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(246, 195, 68, 0.16), transparent 24rem),
+    linear-gradient(135deg, #f8f1e6 0%, #edf6f0 100%) !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav.site-nav,
+body:has(.app-header) .app-header {
+  color: #2b211d !important;
+  background: #fff9e8 !important;
+  border-bottom-color: #e6d4aa !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand,
+body:has(.app-header) .aiba-subsite-nav .brand strong {
+  color: #2b211d !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .brand small,
+body:has(.app-header) .aiba-subsite-nav .nav-account-status,
+body:has(.app-header) .app-header .brand-block p {
+  color: #705f56 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button {
+  color: #2b211d !important;
+  border-color: #cdb98e !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-light {
+  background: #fffdf8 !important;
+}
+
+body:has(.app-header) .aiba-subsite-nav .nav-button-solid {
+  color: #fffdf8 !important;
+  border-color: #247c78 !important;
+  background: #247c78 !important;
+  box-shadow: 0 12px 26px rgba(36, 124, 120, .18) !important;
+}
+
+body:has(.app-header) .app-header .brand-block h1 {
+  color: #742113 !important;
+}
+
+body:has(.app-header) .app-header .brand-divider {
+  background: #d9bd74 !important;
+}
+
+body:has(.app-header) .input-panel {
+  color: #2b211d !important;
+  border-color: #d8bd8e !important;
+  background: #fffdf8 !important;
+  box-shadow: 0 16px 34px rgba(84, 51, 29, .1) !important;
+}
+
+body:has(.app-header) .input-panel .field-label {
+  color: #2b211d !important;
+}
+
+body:has(.app-header) .input-panel .select-shell,
+body:has(.app-header) .input-panel .textarea-shell {
+  border-color: #cdb98e !important;
+  background: #fffdf8 !important;
+}
+
+body:has(.app-header) .input-panel .select-shell select,
+body:has(.app-header) .input-panel textarea {
+  color: #2b211d !important;
+}
+
+body:has(.app-header) .input-panel .upload-zone {
+  color: #59483f !important;
+  border-color: #c9a86a !important;
+  background: #fff8e7 !important;
+}

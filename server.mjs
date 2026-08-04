@@ -3,7 +3,7 @@ import { stat } from 'node:fs/promises';
 import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -117,6 +117,32 @@ server.listen(port, host, () => {
 });
 
 function proxyApiRequest(request, response) {
+  const origin = String(request.headers.origin || '');
+  const requestHost = String(request.headers.host || '').split(':')[0].toLowerCase();
+  let allowedOrigin = '';
+  try {
+    const originUrl = new URL(origin);
+    if (originUrl.hostname.toLowerCase() === requestHost) allowedOrigin = origin;
+  } catch (_error) {
+    // 非法 Origin 直接按同源请求处理，不回显到响应头。
+  }
+
+  if (allowedOrigin) {
+    response.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    response.setHeader('Access-Control-Allow-Credentials', 'true');
+    response.setHeader('Vary', 'Origin');
+  }
+
+  if (request.method === 'OPTIONS') {
+    if (allowedOrigin) {
+      response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+      response.setHeader('Access-Control-Allow-Headers', String(request.headers['access-control-request-headers'] || 'Content-Type'));
+    }
+    response.writeHead(204);
+    response.end();
+    return;
+  }
+
   const upstream = http.request({
     protocol: backendOrigin.protocol,
     hostname: backendOrigin.hostname,
@@ -176,6 +202,8 @@ function startToolProcess(tool) {
     throw new Error(`缺少启动入口：${entry}`);
   }
 
+  ensureToolBuildReady(tool, cwd);
+
   const child = spawn(process.execPath, [entry, ...tool.args], {
     cwd,
     env: {
@@ -199,6 +227,22 @@ function startToolProcess(tool) {
     toolProcesses.delete(tool.name);
     if (code && code !== 0) console.error(`[${tool.name}] 异常退出，退出码：${code}`);
   });
+}
+
+function ensureToolBuildReady(tool, cwd) {
+  if (tool.name !== '错题归因追分器') return;
+  const distIndex = path.join(cwd, 'dist', 'index.html');
+  if (existsSync(distIndex)) return;
+
+  const build = spawnSync(process.execPath, [path.join(cwd, 'scripts', 'build-frontend.js')], {
+    cwd,
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (build.status !== 0 || !existsSync(distIndex)) {
+    const details = String(build.stderr || build.stdout || '').trim().slice(-800);
+    throw new Error(`错题归因追分器前端构建失败${details ? `：${details}` : ''}`);
+  }
 }
 
 function loadPlatformAiEnvironment(siteId = '') {
@@ -254,7 +298,7 @@ function loadPlatformAiEnvironment(siteId = '') {
 }
 
 async function waitForTool(tool) {
-  const deadline = Date.now() + 15_000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (await isPortOpen(tool.port)) return;
     const child = toolProcesses.get(tool.name);

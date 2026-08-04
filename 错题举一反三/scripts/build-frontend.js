@@ -81,6 +81,13 @@ function pickOutputAssets(metafile) {
 async function buildFrontend() {
   await fs.promises.rm(distDir, { recursive: true, force: true });
   await fs.promises.mkdir(assetsDir, { recursive: true });
+  for (const assetName of ['aiba-brand.css', 'aiba-logo.jpg', 'aiba-subsite-nav.css', 'aiba-subsite-nav.js']) {
+    await fs.promises.copyFile(path.join(srcDir, assetName), path.join(distDir, assetName));
+  }
+  const sharedDir = path.join(distDir, 'shared');
+  await fs.promises.mkdir(sharedDir, { recursive: true });
+  await fs.promises.copyFile(path.resolve(projectRoot, '..', '错题归因追分器', 'shared', 'hzq.js'), path.join(sharedDir, 'hzq.js'));
+  await fs.promises.copyFile(path.resolve(projectRoot, '..', '错题归因追分器', 'shared', 'jx-brand.css'), path.join(sharedDir, 'jx-brand.css'));
 
   const buildResult = await esbuild.build({
     entryPoints: [entryPoint],

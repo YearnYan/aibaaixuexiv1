@@ -39,6 +39,43 @@ Playwright 技能包装脚本存在于 Windows 文件系统，但当前 `bash` �
 
 ---
 
+## [ERR-20260804-001] missing-static-assets-after-frontend-build
+
+**Logged**: 2026-08-04T12:00:00+08:00
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+前端构建脚本清空 `dist` 后未复制导航 CSS、Logo 和共享脚本，导致服务端返回 HTML 代替静态资源。
+
+### Error
+
+```text
+Refused to apply style ... aiba-subsite-nav.css because its MIME type ('text/html') is not a supported stylesheet MIME type
+```
+
+### Context
+
+- `错题归因追分器`、`错题举一反三`、`AI出题机` 的构建脚本使用 `rm(dist)`。
+- 构建后只生成 `assets` 和 `index.html`，没有保留导航依赖。
+
+### Suggested Fix
+
+构建脚本清空产物目录后，应显式复制 `aiba-brand.css`、`aiba-subsite-nav.css`、`aiba-subsite-nav.js`、`aiba-logo.jpg` 与共享脚本。
+
+### Metadata
+
+- Reproducible: yes
+- Related Files: `错题归因追分器/scripts/build-frontend.js`, `错题举一反三/scripts/build-frontend.js`, `AI出题机/scripts/build-frontend.js`
+
+### Resolution
+
+- **Resolved**: 2026-08-04T12:10:00+08:00
+- **Notes**: 已在三个构建脚本中补齐静态资源复制，并重新构建验证。
+
+---
+
 ## [ERR-20260801-008] subsite-navigation-serial-check-timeout
 
 **Logged**: 2026-08-01T21:30:00+08:00
