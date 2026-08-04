@@ -14,6 +14,7 @@ const backendPort = readPort(process.env.PLATFORM_BACKEND_PORT, 5180);
 const backendOrigin = new URL(process.env.PLATFORM_API_ORIGIN || `http://127.0.0.1:${backendPort}`);
 const shouldStartBackend = !process.env.PLATFORM_API_ORIGIN;
 const toolBindHost = process.env.TOOL_BIND_HOST || '127.0.0.1';
+const toolAssetVersion = process.env.TOOL_ASSET_VERSION || '20260804-proxy-fix';
 
 const toolDefinitions = [
   ['AI丢分诊断器', 5201, 'server.js'],
@@ -235,7 +236,7 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
       const chunks = [];
       upstreamResponse.on('data', (chunk) => chunks.push(chunk));
       upstreamResponse.on('end', () => {
-        const body = rewriteToolContent(Buffer.concat(chunks), routePrefix);
+        const body = rewriteToolContent(Buffer.concat(chunks), routePrefix, contentType, upstreamPath);
         response.writeHead(upstreamResponse.statusCode || 502, headers);
         response.end(body);
       });
@@ -267,17 +268,30 @@ async function ensureToolRunning(tool) {
   await waitForTool(tool);
 }
 
-function rewriteToolContent(buffer, routePrefix) {
+function rewriteToolContent(buffer, routePrefix, contentType = '') {
   const text = buffer.toString('utf8');
   const quotePattern = '["' + "'" + String.fromCharCode(96) + ']';
-  // 子站源码中的根路径资源（包括 /styles.css、/app.js、/assets 与 /api）
-  // 都必须经过当前子站前缀，否则浏览器会请求主站根目录。CSS 的 url()
-  // 单独处理，避免误伤 JavaScript 正则表达式中的斜杠。
+  // HTML 属性中的根路径资源需要经过当前子站前缀，否则浏览器会请求主站根目录。
   const rootPathPattern = new RegExp('(' + quotePattern + ')\\/(?!\\/)(?=[A-Za-z0-9_.-])', 'g');
+  // CSS 的 url() 单独处理；JavaScript 只改写 API 字符串，避免误伤压缩
+  // bundle 中的正则表达式和动态导入路径。
   const cssUrlPathPattern = /((?:url\(\s*))\/(?!\/)(?=[A-Za-z0-9_.-])/g;
-  return text
-    .replace(rootPathPattern, '$1' + routePrefix + '/')
-    .replace(cssUrlPathPattern, '$1' + routePrefix + '/');
+  const jsApiPathPattern = new RegExp('(' + quotePattern + ')\\/api(?=[\\/?#])', 'g');
+  if (/text\/html/u.test(contentType)) {
+    const rewrittenHtml = text.replace(rootPathPattern, '$1' + routePrefix + '/');
+    // 子站资源文件名可能在浏览器中缓存过旧的代理结果，版本参数确保修复后立即生效。
+    return rewrittenHtml.replace(
+      /((?:src|href)=(['"])[^"']+\.(?:js|css))(["'])/gu,
+      '$1?aiba=' + toolAssetVersion + '$3',
+    );
+  }
+  if (/text\/css/u.test(contentType)) {
+    return text.replace(cssUrlPathPattern, '$1' + routePrefix + '/');
+  }
+  if (/javascript|ecmascript/u.test(contentType)) {
+    return text.replace(jsApiPathPattern, '$1' + routePrefix + '/api');
+  }
+  return text;
 }
 
 async function launchTool(requestUrl, response, tool) {
