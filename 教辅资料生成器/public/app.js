@@ -392,10 +392,10 @@ async function refreshCurrentUser() {
 
 function renderAuthState() {
   if (state.currentUser) {
-    userBadge.textContent = `${state.currentUser.username}｜积分 ${state.currentUser.points}`;
-    authButton.hidden = true;
-    logoutButton.hidden = false;
-    redeemButton.disabled = false;
+    if (userBadge) userBadge.textContent = `${state.currentUser.username}｜积分 ${state.currentUser.points}`;
+    if (authButton) authButton.hidden = true;
+    if (logoutButton) logoutButton.hidden = false;
+    if (redeemButton) redeemButton.disabled = false;
     generateButton.textContent = state.isGenerating
       ? '生成中'
       : state.isConfirmingRule
@@ -404,10 +404,10 @@ function renderAuthState() {
     return;
   }
 
-  userBadge.textContent = '未登录';
-  authButton.hidden = false;
-  logoutButton.hidden = true;
-  redeemButton.disabled = false;
+  if (userBadge) userBadge.textContent = '未登录';
+  if (authButton) authButton.hidden = false;
+  if (logoutButton) logoutButton.hidden = true;
+  if (redeemButton) redeemButton.disabled = false;
   if (!state.isGenerating && !state.isConfirmingRule) {
     generateButton.textContent = '登录后生成';
   }

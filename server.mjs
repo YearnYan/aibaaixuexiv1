@@ -268,11 +268,15 @@ async function ensureToolRunning(tool) {
 
 function rewriteToolContent(buffer, routePrefix) {
   const text = buffer.toString('utf8');
-  const quotePattern = '["' + "'" + String.fromCharCode(96) + '(]';
+  const quotePattern = '["' + "'" + String.fromCharCode(96) + ']';
   // 子站源码中的根路径资源（包括 /styles.css、/app.js、/assets 与 /api）
-  // 都必须经过当前子站前缀，否则浏览器会请求主站根目录。
+  // 都必须经过当前子站前缀，否则浏览器会请求主站根目录。CSS 的 url()
+  // 单独处理，避免误伤 JavaScript 正则表达式中的斜杠。
   const rootPathPattern = new RegExp('(' + quotePattern + ')\\/(?!\\/)(?=[A-Za-z0-9_.-])', 'g');
-  return text.replace(rootPathPattern, '$1' + routePrefix + '/');
+  const cssUrlPathPattern = /((?:url\(\s*))\/(?!\/)(?=[A-Za-z0-9_.-])/g;
+  return text
+    .replace(rootPathPattern, '$1' + routePrefix + '/')
+    .replace(cssUrlPathPattern, '$1' + routePrefix + '/');
 }
 
 async function launchTool(requestUrl, response, tool) {
