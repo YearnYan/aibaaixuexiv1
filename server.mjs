@@ -217,7 +217,8 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
       },
     }, (upstreamResponse) => {
       const contentType = String(upstreamResponse.headers['content-type'] || '').toLowerCase();
-      const shouldRewrite = /text\/html|javascript|text\/css/.test(contentType);
+      const shouldRewrite = /text\/html|javascript|text\/css/.test(contentType)
+        && !/\/vendor(?:\/|$)/u.test(upstreamPath);
       const headers = { ...upstreamResponse.headers };
       delete headers['content-length'];
 

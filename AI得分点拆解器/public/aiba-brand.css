@@ -286,7 +286,7 @@ body:has(.app-header) .app-header .brand-divider {
 }
 
 /* 得分点拆解器的页面标题需要保持清晰的深色对比度。 */
-body:not(:has(.app-header)) .app-shell .brand-block h1#app-title {
+body .app-shell > .input-panel .brand-block h1#app-title {
   color: #173f34 !important;
 }
 
