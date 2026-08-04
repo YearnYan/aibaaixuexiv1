@@ -182,15 +182,28 @@ function proxyApiRequest(request, response) {
 
 async function proxyToolRequest(request, response, requestUrl, tool, routePrefix) {
   try {
+    // 子站入口必须保留末尾斜杠，否则 HTML 中的相对资源会被浏览器解析到主站根目录。
+    const decodedPathname = decodeURIComponent(requestUrl.pathname);
+    if ((request.method === 'GET' || request.method === 'HEAD') && decodedPathname === routePrefix) {
+      const location = `${encodeURI(routePrefix)}/${requestUrl.search}`;
+      response.writeHead(308, {
+        Location: location,
+        'Cache-Control': 'no-store',
+      });
+      response.end();
+      return;
+    }
+
     await ensureToolRunning(tool);
 
-    const decodedPathname = decodeURIComponent(requestUrl.pathname);
     const suffix = decodedPathname.slice(routePrefix.length) || '/';
     const upstreamPath = (suffix.startsWith('/') ? suffix : '/' + suffix) + requestUrl.search;
     const upstreamHeaders = { ...request.headers };
     delete upstreamHeaders.connection;
     delete upstreamHeaders.upgrade;
     delete upstreamHeaders['proxy-connection'];
+    // 代理需要读取并重写文本内容，禁止上游返回压缩字节，避免 UTF-8 解码产生乱码。
+    upstreamHeaders['accept-encoding'] = 'identity';
     const upstream = http.request({
       hostname: '127.0.0.1',
       port: tool.port,
@@ -207,6 +220,10 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
       const shouldRewrite = /text\/html|javascript|text\/css/.test(contentType);
       const headers = { ...upstreamResponse.headers };
       delete headers['content-length'];
+
+      if (shouldRewrite && !/charset\s*=/u.test(contentType)) {
+        headers['content-type'] = `${upstreamResponse.headers['content-type'] || 'text/html'}; charset=utf-8`;
+      }
 
       if (!shouldRewrite || request.method === 'HEAD') {
         response.writeHead(upstreamResponse.statusCode || 502, headers);
@@ -252,11 +269,10 @@ async function ensureToolRunning(tool) {
 function rewriteToolContent(buffer, routePrefix) {
   const text = buffer.toString('utf8');
   const quotePattern = '["' + "'" + String.fromCharCode(96) + '(]';
-  const pathPattern = new RegExp('(' + quotePattern + ')\\/(assets|api|shared)(?=\\/)', 'g');
-  const faviconPattern = new RegExp('(' + quotePattern + ')\\/favicon\\.ico', 'g');
-  return text
-    .replace(pathPattern, '$1' + routePrefix + '/$2')
-    .replace(faviconPattern, '$1' + routePrefix + '/favicon.ico');
+  // 子站源码中的根路径资源（包括 /styles.css、/app.js、/assets 与 /api）
+  // 都必须经过当前子站前缀，否则浏览器会请求主站根目录。
+  const rootPathPattern = new RegExp('(' + quotePattern + ')\\/(?!\\/)(?=[A-Za-z0-9_.-])', 'g');
+  return text.replace(rootPathPattern, '$1' + routePrefix + '/');
 }
 
 async function launchTool(requestUrl, response, tool) {
