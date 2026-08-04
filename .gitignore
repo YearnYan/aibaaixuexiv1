@@ -8,6 +8,8 @@
 **/.server-dist/
 **/tmp/
 **/data/
+!AI审题器/src/data/
+!AI审题器/src/data/demo.ts
 **/.env
 **/.env.local
 output/playwright/

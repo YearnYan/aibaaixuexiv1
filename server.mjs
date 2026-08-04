@@ -46,6 +46,17 @@ const toolDefinitions = [
 }));
 const toolRoutes = new Map(toolDefinitions.map((tool) => [`/${tool.name}`, tool]));
 
+function matchToolRoute(pathname) {
+  const normalizedPath = decodeURIComponent(pathname).replace(/\/+$/u, '') || '/';
+  for (const tool of toolDefinitions) {
+    const route = `/${tool.name}`;
+    if (normalizedPath === route || normalizedPath.startsWith(`${route}/`)) {
+      return { tool, route };
+    }
+  }
+  return null;
+}
+
 const mimeTypes = new Map([
   ['.html', 'text/html; charset=utf-8'],
   ['.css', 'text/css; charset=utf-8'],
@@ -93,10 +104,9 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    const toolRoute = decodeURIComponent(requestUrl.pathname).replace(/\/+$/u, '');
-    const tool = toolRoutes.get(toolRoute);
-    if (tool) {
-      await launchTool(requestUrl, response, tool);
+    const toolMatch = matchToolRoute(requestUrl.pathname);
+    if (toolMatch) {
+      await proxyToolRequest(request, response, requestUrl, toolMatch.tool, toolMatch.route);
       return;
     }
 
@@ -170,6 +180,85 @@ function proxyApiRequest(request, response) {
   request.pipe(upstream);
 }
 
+async function proxyToolRequest(request, response, requestUrl, tool, routePrefix) {
+  try {
+    await ensureToolRunning(tool);
+
+    const decodedPathname = decodeURIComponent(requestUrl.pathname);
+    const suffix = decodedPathname.slice(routePrefix.length) || '/';
+    const upstreamPath = (suffix.startsWith('/') ? suffix : '/' + suffix) + requestUrl.search;
+    const upstreamHeaders = { ...request.headers };
+    delete upstreamHeaders.connection;
+    delete upstreamHeaders.upgrade;
+    delete upstreamHeaders['proxy-connection'];
+    const upstream = http.request({
+      hostname: '127.0.0.1',
+      port: tool.port,
+      path: upstreamPath,
+      method: request.method,
+      headers: {
+        ...upstreamHeaders,
+        host: '127.0.0.1:' + tool.port,
+        connection: 'keep-alive',
+        'x-forwarded-host': request.headers.host || '',
+      },
+    }, (upstreamResponse) => {
+      const contentType = String(upstreamResponse.headers['content-type'] || '').toLowerCase();
+      const shouldRewrite = /text\/html|javascript|text\/css/.test(contentType);
+      const headers = { ...upstreamResponse.headers };
+      delete headers['content-length'];
+
+      if (!shouldRewrite || request.method === 'HEAD') {
+        response.writeHead(upstreamResponse.statusCode || 502, headers);
+        upstreamResponse.pipe(response);
+        return;
+      }
+
+      const chunks = [];
+      upstreamResponse.on('data', (chunk) => chunks.push(chunk));
+      upstreamResponse.on('end', () => {
+        const body = rewriteToolContent(Buffer.concat(chunks), routePrefix);
+        response.writeHead(upstreamResponse.statusCode || 502, headers);
+        response.end(body);
+      });
+      upstreamResponse.on('error', (error) => response.destroy(error));
+    });
+
+    upstream.on('error', (error) => {
+      console.error('[' + tool.name + '] 子站代理失败：' + error.message);
+      if (!response.headersSent) {
+        sendJson(response, 502, { ok: false, message: tool.name + ' 服务暂时不可用，请稍后重试' });
+      } else {
+        response.end();
+      }
+    });
+
+    request.pipe(upstream);
+  } catch (error) {
+    console.error('[' + tool.name + '] 启动失败：' + error.message);
+    sendJson(response, 503, {
+      ok: false,
+      message: tool.name + ' 暂时无法启动，请确认该子站依赖和生产构建已准备完成',
+    });
+  }
+}
+
+async function ensureToolRunning(tool) {
+  if (await isPortOpen(tool.port)) return;
+  startToolProcess(tool);
+  await waitForTool(tool);
+}
+
+function rewriteToolContent(buffer, routePrefix) {
+  const text = buffer.toString('utf8');
+  const quotePattern = '["' + "'" + String.fromCharCode(96) + '(]';
+  const pathPattern = new RegExp('(' + quotePattern + ')\\/(assets|api|shared)(?=\\/)', 'g');
+  const faviconPattern = new RegExp('(' + quotePattern + ')\\/favicon\\.ico', 'g');
+  return text
+    .replace(pathPattern, '$1' + routePrefix + '/$2')
+    .replace(faviconPattern, '$1' + routePrefix + '/favicon.ico');
+}
+
 async function launchTool(requestUrl, response, tool) {
   try {
     if (!await isPortOpen(tool.port)) {
@@ -198,6 +287,7 @@ function startToolProcess(tool) {
 
   const cwd = path.join(rootDir, tool.name);
   const entry = path.resolve(cwd, tool.entry);
+  ensureToolBuildReady(tool, cwd);
   if (!existsSync(entry)) {
     throw new Error(`缺少启动入口：${entry}`);
   }
@@ -230,7 +320,20 @@ function startToolProcess(tool) {
 }
 
 function ensureToolBuildReady(tool, cwd) {
-  if (tool.name !== '错题归因追分器') return;
+  if (tool.name !== '错题归因追分器') {
+    if (existsSync(path.resolve(cwd, tool.entry))) return;
+    const buildCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const build = spawnSync(buildCommand, ['run', 'build'], {
+      cwd,
+      encoding: 'utf8',
+      windowsHide: true,
+    });
+    if (build.status !== 0 || !existsSync(path.resolve(cwd, tool.entry))) {
+      const details = String(build.stderr || build.stdout || '').trim().slice(-800);
+      throw new Error('子站构建失败：' + tool.name + (details ? '：' + details : ''));
+    }
+    return;
+  }
   const distIndex = path.join(cwd, 'dist', 'index.html');
   if (existsSync(distIndex)) return;
 
