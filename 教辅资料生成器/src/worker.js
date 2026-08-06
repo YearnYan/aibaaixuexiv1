@@ -387,7 +387,7 @@ async function handleRegister(request) {
     user: registration.user,
     setupAdminCreated: registration.setupAdminCreated,
   }, {
-    'Set-Cookie': createSessionCookie(registration.sessionToken),
+    'Set-Cookie': createSessionCookie(registration.sessionToken, request),
   });
 }
 
@@ -406,7 +406,7 @@ async function handleLogin(request) {
     return jsonResponse(401, { ok: false, message: '账号或密码不正确' });
   }
   return jsonResponse(200, { ok: true, user: login.user }, {
-    'Set-Cookie': createSessionCookie(login.sessionToken),
+    'Set-Cookie': createSessionCookie(login.sessionToken, request),
   });
 }
 
@@ -421,7 +421,7 @@ async function handleLogout(request) {
     });
   }
   return jsonResponse(200, { ok: true }, {
-    'Set-Cookie': createExpiredSessionCookie(),
+    'Set-Cookie': createExpiredSessionCookie(request),
   });
 }
 
@@ -4087,12 +4087,24 @@ function parseCookies(request) {
   }));
 }
 
-function createSessionCookie(token) {
-  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+function getAuthCookieDomain(request) {
+  try {
+    const hostname = new URL(request.url).hostname.toLowerCase();
+    if (hostname === 'xiaoaijia.cn' || hostname === 'www.xiaoaijia.cn' || hostname.endsWith('.xiaoaijia.cn')) {
+      return '; Domain=.xiaoaijia.cn';
+    }
+  } catch {
+    // 无法解析请求地址时保持主机级 Cookie。
+  }
+  return '';
 }
 
-function createExpiredSessionCookie() {
-  return `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
+function createSessionCookie(token, request) {
+  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax${getAuthCookieDomain(request)}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+}
+
+function createExpiredSessionCookie(request) {
+  return `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax${getAuthCookieDomain(request)}; Path=/; Max-Age=0`;
 }
 
 async function readJsonBody(request) {

@@ -23,6 +23,8 @@ const redeemCodeInput = document.querySelector('#redeemCodeInput');
 const redeemSubmitButton = document.querySelector('#redeemSubmitButton');
 const redeemMessage = document.querySelector('#redeemMessage');
 const toast = document.querySelector('#toast');
+const accountStateKey = 'aiba-account-state-v1';
+const accountChangedEvent = 'aiba:account-changed';
 
 authButton.addEventListener('click', openAccountModal);
 heroAccountButton.addEventListener('click', openAccountModal);
@@ -73,6 +75,7 @@ async function refreshSession() {
     state.setupRequired = Boolean(data.setupRequired);
     if (state.setupRequired) setAuthMode('register');
     renderAccount();
+    publishAccountState(state.user);
   } catch {
     state.user = null;
     renderAccount();
@@ -161,6 +164,7 @@ async function submitAuth(event) {
     state.setupRequired = false;
     passwordInput.value = '';
     renderAccount();
+    publishAccountState(state.user);
     setMessage(authMessage, state.authMode === 'register' ? '账号创建成功' : '登录成功');
     showToast(`${state.user.username}，欢迎回来`);
   } catch (error) {
@@ -180,6 +184,7 @@ async function logout() {
   state.user = null;
   logoutButton.disabled = false;
   renderAccount();
+  publishAccountState(null);
   closeModal(authModal);
   showToast('已退出当前账号');
 }
@@ -198,6 +203,7 @@ async function redeemPoints(event) {
     });
     state.user = data.user;
     renderAccount();
+    publishAccountState(state.user);
     setMessage(redeemMessage, `兑换成功，已增加 ${data.redeemedPoints} 积分`);
     showToast(`兑换成功，当前余额 ${data.points} 积分`);
   } catch (error) {
@@ -205,6 +211,21 @@ async function redeemPoints(event) {
   } finally {
     redeemSubmitButton.disabled = false;
   }
+}
+
+function publishAccountState(user) {
+  const payload = {
+    user: user || null,
+    updatedAt: Date.now(),
+  };
+  try {
+    window.localStorage.setItem(accountStateKey, JSON.stringify(payload));
+  } catch {
+    // 隐私模式禁用本地存储时，Cookie 和 API 仍然是权威状态来源。
+  }
+  window.dispatchEvent(new CustomEvent(accountChangedEvent, {
+    detail: { user: user || null },
+  }));
 }
 
 async function requestJson(url, options = {}) {

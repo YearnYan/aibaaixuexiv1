@@ -142,6 +142,23 @@ function renderSites() {
     head.append(title, modeField);
     card.append(head);
 
+    const costField = document.createElement('label');
+    costField.className = 'admin-field site-cost-field';
+    const costTitle = document.createElement('span');
+    costTitle.textContent = '每次使用扣除积分';
+    const costInput = document.createElement('input');
+    costInput.type = 'number';
+    costInput.min = '1';
+    costInput.max = '100000';
+    costInput.step = '1';
+    costInput.value = String(site.pointsPerUse || 1);
+    costInput.addEventListener('input', () => {
+      const value = Math.floor(Number(costInput.value));
+      site.pointsPerUse = Number.isFinite(value) && value >= 1 ? Math.min(100000, value) : 1;
+    });
+    costField.append(costTitle, costInput);
+    card.append(costField);
+
     const description = document.createElement('p');
     description.className = 'site-config-description';
     description.textContent = site.mode === 'global'
@@ -260,6 +277,7 @@ function collectConfig() {
       id: site.id,
       mode: site.mode,
       entries: site.mode === 'custom' ? normalizeEntriesForSave(site.entries) : [],
+      pointsPerUse: normalizeUsageCost(site.pointsPerUse),
     })),
     // 保留旧版字段，确保教辅资料生成器继续使用原有文本接口。
     rule: { entries: normalizeEntriesForSave(state.config.rule.entries) },
@@ -306,6 +324,7 @@ function normalizeSites(sites) {
       id,
       mode,
       entries: mode === 'custom' ? normalizeEntries(raw?.entries) : [],
+      pointsPerUse: normalizeUsageCost(raw?.pointsPerUse),
     };
   });
 }
@@ -323,10 +342,15 @@ function normalizeKeys(value) {
   return [...new Set(value.split(/\r?\n/).map((key) => key.trim()).filter(Boolean))];
 }
 
+function normalizeUsageCost(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.min(100000, Math.floor(parsed)) : 1;
+}
+
 function createEmptyConfig() {
   return {
     global: { entries: [createBlankEntry()] },
-    sites: SITE_DEFINITIONS.map((id) => ({ id, mode: 'global', entries: [] })),
+    sites: SITE_DEFINITIONS.map((id) => ({ id, mode: 'global', entries: [], pointsPerUse: 1 })),
     rule: { entries: [createBlankEntry()] },
     image: { resolution: '4k', entries: [createBlankEntry()] },
   };

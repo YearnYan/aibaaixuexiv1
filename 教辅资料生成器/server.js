@@ -94,6 +94,7 @@ loadDotEnv();
 const PORT = toPort(process.env.PORT, 5173);
 const BIND_HOST = process.env.BIND_HOST || '127.0.0.1';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const CONFIGURED_COOKIE_DOMAIN = String(process.env.AIBA_COOKIE_DOMAIN || '').trim();
 const PLATFORM_MODE = process.env.PLATFORM_MODE === '1';
 const PLATFORM_INTERNAL_TOKEN = String(process.env.PLATFORM_INTERNAL_TOKEN || '');
 const IMAGE_CONCURRENCY = clampNumber(process.env.MAT_IMAGE_CONCURRENCY, 1, 4, 2);
@@ -228,6 +229,7 @@ function createDefaultAiSiteConfigs() {
     id,
     mode: 'global',
     entries: [],
+    pointsPerUse: 1,
   }));
 }
 
@@ -554,30 +556,47 @@ function parseCookies(req) {
   );
 }
 
-function createSessionCookie(token) {
-  const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
-  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax${secureAttribute}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+function getAuthCookieDomain(req) {
+  const configured = CONFIGURED_COOKIE_DOMAIN.replace(/^\.+/u, '');
+  if (configured) return `.${configured}`;
+
+  const forwardedHost = String(req?.headers?.['x-forwarded-host'] || '').split(',')[0].trim();
+  const host = (forwardedHost || String(req?.headers?.host || '')).split(':')[0].toLowerCase();
+  if (host === 'xiaoaijia.cn' || host === 'www.xiaoaijia.cn' || host.endsWith('.xiaoaijia.cn')) {
+    return '.xiaoaijia.cn';
+  }
+  return '';
 }
 
-function createProfileCookie(user) {
+function cookieDomainAttribute(req) {
+  const domain = getAuthCookieDomain(req);
+  return domain ? `; Domain=${domain}` : '';
+}
+
+function createSessionCookie(token, req) {
+  const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
+  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax${secureAttribute}${cookieDomainAttribute(req)}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+}
+
+function createProfileCookie(user, req) {
   const profile = encodeURIComponent(JSON.stringify(createPublicUser(user)));
   const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
-  return `${PROFILE_COOKIE_NAME}=${profile}; SameSite=Lax${secureAttribute}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+  return `${PROFILE_COOKIE_NAME}=${profile}; SameSite=Lax${secureAttribute}${cookieDomainAttribute(req)}; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
 }
 
-function createExpiredSessionCookie() {
+function createExpiredSessionCookie(req) {
   const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
-  return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax${secureAttribute}; Path=/; Max-Age=0`;
+  return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax${secureAttribute}${cookieDomainAttribute(req)}; Path=/; Max-Age=0`;
 }
 
-function createExpiredProfileCookie() {
+function createExpiredProfileCookie(req) {
   const secureAttribute = IS_PRODUCTION ? '; Secure' : '';
-  return `${PROFILE_COOKIE_NAME}=; SameSite=Lax${secureAttribute}; Path=/; Max-Age=0`;
+  return `${PROFILE_COOKIE_NAME}=; SameSite=Lax${secureAttribute}${cookieDomainAttribute(req)}; Path=/; Max-Age=0`;
 }
 
-function createSessionHeaders(user, token) {
+function createSessionHeaders(user, token, req) {
   return {
-    'Set-Cookie': [createSessionCookie(token), createProfileCookie(user)],
+    'Set-Cookie': [createSessionCookie(token, req), createProfileCookie(user, req)],
   };
 }
 
@@ -950,7 +969,7 @@ async function handleRegister(req, res) {
     ok: true,
     user: createPublicUser(user),
     setupAdminCreated: user.role === 'admin',
-  }, createSessionHeaders(user, session.token));
+  }, createSessionHeaders(user, session.token, req));
 }
 
 async function handleLogin(req, res) {
@@ -972,7 +991,7 @@ async function handleLogin(req, res) {
   sendJson(res, 200, {
     ok: true,
     user: createPublicUser(user),
-  }, createSessionHeaders(user, session.token));
+  }, createSessionHeaders(user, session.token, req));
 }
 
 async function handleLogout(req, res) {
@@ -985,7 +1004,7 @@ async function handleLogout(req, res) {
   sendJson(res, 200, {
     ok: true,
   }, {
-    'Set-Cookie': [createExpiredSessionCookie(), createExpiredProfileCookie()],
+    'Set-Cookie': [createExpiredSessionCookie(req), createExpiredProfileCookie(req)],
   });
 }
 
@@ -996,7 +1015,82 @@ function handleMe(req, res) {
     authenticated: Boolean(user),
     setupRequired: appState.users.length === 0,
     user: createPublicUser(user),
-  }, user ? { 'Set-Cookie': createProfileCookie(user) } : {});
+  }, user ? { 'Set-Cookie': createProfileCookie(user, req) } : {});
+}
+
+function requirePlatformInternal(req, res) {
+  const token = String(req.headers['x-platform-internal-token'] || '');
+  if (
+    !PLATFORM_INTERNAL_TOKEN
+    || !safeEqualText(token, PLATFORM_INTERNAL_TOKEN)
+    || !isLoopbackAddress(req.socket.remoteAddress)
+  ) {
+    sendJson(res, 404, { ok: false, message: '接口不存在' });
+    return false;
+  }
+  return true;
+}
+
+async function handlePlatformConsume(req, res) {
+  if (!requirePlatformInternal(req, res)) return;
+  const user = requireAuth(req, res);
+  if (!user) return;
+  const payload = await readJsonBody(req);
+  const siteId = cleanText(payload.siteId, 80);
+  const cost = getSitePointsPerUse(siteId);
+  if (user.points < cost) {
+    sendJson(res, 402, {
+      ok: false,
+      code: 'INSUFFICIENT_POINTS',
+      message: `积分不足，本次需要 ${cost} 积分，当前剩余 ${user.points} 积分`,
+      points: user.points,
+      cost,
+    });
+    return;
+  }
+
+  user.points -= cost;
+  user.updatedAt = new Date().toISOString();
+  addPointLog({
+    user,
+    type: 'platform_use',
+    points: -cost,
+    note: `${siteId || '子站'} 使用一次`,
+  });
+  await saveAppState();
+  sendJson(res, 200, {
+    ok: true,
+    siteId,
+    cost,
+    user: createPublicUser(user),
+    points: user.points,
+  });
+}
+
+async function handlePlatformRefund(req, res) {
+  if (!requirePlatformInternal(req, res)) return;
+  const user = requireAuth(req, res);
+  if (!user) return;
+  const payload = await readJsonBody(req);
+  const siteId = cleanText(payload.siteId, 80);
+  const cost = getSitePointsPerUse(siteId);
+  user.points += cost;
+  user.updatedAt = new Date().toISOString();
+  addPointLog({
+    user,
+    type: 'platform_refund',
+    points: cost,
+    note: `${siteId || '子站'} 请求失败，退回积分`,
+    status: 'refunded',
+  });
+  await saveAppState();
+  sendJson(res, 200, {
+    ok: true,
+    siteId,
+    refunded: cost,
+    user: createPublicUser(user),
+    points: user.points,
+  });
 }
 
 async function handleRedeemPoints(req, res) {
@@ -1032,7 +1126,7 @@ async function handleRedeemPoints(req, res) {
     points: user.points,
     redeemedPoints: code.points,
     user: createPublicUser(user),
-  }, { 'Set-Cookie': createProfileCookie(user) });
+  }, { 'Set-Cookie': createProfileCookie(user, req) });
 }
 
 function handleUserPointLogs(req, res) {
@@ -1295,6 +1389,7 @@ function normalizeAiSiteConfigs(source, options = {}) {
       id,
       mode,
       entries: mode === 'custom' ? custom.entries : [],
+      pointsPerUse: normalizeUsageCost(item?.pointsPerUse),
     });
   }
 
@@ -1355,6 +1450,13 @@ function normalizeAiProviderEntry(entry, label, index, options = {}) {
   };
 }
 
+function normalizeUsageCost(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1
+    ? Math.min(100000, Math.floor(parsed))
+    : 1;
+}
+
 function normalizeApiKeyList(value) {
   const rawItems = Array.isArray(value)
     ? value
@@ -1385,6 +1487,7 @@ function createAdminConfigResponse() {
         label,
         mode: site?.mode || 'global',
         entries: cloneAiEntries(site?.entries),
+        pointsPerUse: normalizeUsageCost(site?.pointsPerUse),
       };
     }),
     rule: {
@@ -1395,6 +1498,11 @@ function createAdminConfigResponse() {
       entries: cloneAiEntries(aiConfig.image?.entries),
     },
   };
+}
+
+function getSitePointsPerUse(siteId) {
+  const site = aiConfig.sites?.find((item) => item.id === cleanText(siteId, 80));
+  return normalizeUsageCost(site?.pointsPerUse);
 }
 
 function cloneAiEntries(entries) {
@@ -1500,6 +1608,16 @@ const server = http.createServer(async (req, res) => {
 
     if (requestUrl.pathname === '/api/auth/me' && req.method === 'GET') {
       handleMe(req, res);
+      return;
+    }
+
+    if (requestUrl.pathname === '/api/internal/platform/consume' && req.method === 'POST') {
+      await handlePlatformConsume(req, res);
+      return;
+    }
+
+    if (requestUrl.pathname === '/api/internal/platform/refund' && req.method === 'POST') {
+      await handlePlatformRefund(req, res);
       return;
     }
 

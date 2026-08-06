@@ -134,6 +134,8 @@
 
   .aiba-subsite-nav .nav-actions {
     gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .aiba-subsite-nav .nav-account-status {
@@ -142,7 +144,20 @@
 
   .aiba-subsite-nav .nav-button {
     min-height: 38px;
-    padding: 0 10px;
-    font-size: 12px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .aiba-subsite-nav .brand {
+    gap: 8px;
+  }
+
+  .aiba-subsite-nav .brand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .aiba-subsite-nav .brand strong {
+    font-size: 14px;
   }
 }

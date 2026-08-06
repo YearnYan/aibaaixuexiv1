@@ -223,6 +223,22 @@ body {
   color: #f3d36b !important;
 }
 
+/* 备课器结果区的“AI继续调整”与下载 Word 使用同一套深绿色按钮样式。 */
+.app-shell > .result-panel > .result-header .result-actions .secondary-button {
+  min-height: 38px;
+  padding: 0 15px;
+  color: #164c3c !important;
+  border-color: #86b69c !important;
+  background: #e9f3ed !important;
+  font-weight: 700;
+}
+
+.app-shell > .result-panel > .result-header .result-actions .secondary-button:hover:not(:disabled) {
+  color: #164c3c !important;
+  border-color: #c9a63d !important;
+  background: #ffffff !important;
+}
+
 /* AI 审题器使用深色工作区，顶部两级导航需要单独保持清晰对比度。 */
 body:has(.app-header) .aiba-subsite-nav.site-nav {
   color: #f5f7f8 !important;

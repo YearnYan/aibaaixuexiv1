@@ -2212,3 +2212,16 @@ a:focus-visible,
   border-color: #5142dc;
   background: #f0efff;
 }
+
+/* 上传题目和学生答案区域使用稳定的深色文字，避免主题覆盖后对比度不足。 */
+.upload-zone,
+.upload-zone .upload-main,
+.upload-zone .upload-types,
+.upload-zone .file-summary {
+  color: #1f2937 !important;
+  text-shadow: none;
+}
+
+.upload-zone .upload-types {
+  color: #465467 !important;
+}

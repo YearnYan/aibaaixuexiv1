@@ -250,6 +250,13 @@ button {
   letter-spacing: 0;
 }
 
+/* 深色标题栏必须使用浅色文字，避免品牌全局标题规则覆盖成黑字。 */
+.panel-title,
+.panel-title h2,
+.panel-title svg {
+  color: #ffffff !important;
+}
+
 .input-body {
   padding: 24px 18px 28px;
 }

@@ -377,6 +377,8 @@ const elements = {
   lossTable: document.querySelector("#loss-table"),
   toggleReport: document.querySelector("#toggle-report"),
   fullReport: document.querySelector("#full-report"),
+  downloadPdf: document.querySelector("#download-pdf"),
+  downloadWord: document.querySelector("#download-word"),
   overallConclusion: document.querySelector("#overall-conclusion"),
   strengthList: document.querySelector("#strength-list"),
   riskList: document.querySelector("#risk-list"),
@@ -426,6 +428,9 @@ function bindEvents() {
     const willShow = elements.fullReport.hidden;
     setFullReportVisible(willShow);
   });
+
+  elements.downloadPdf.addEventListener("click", () => downloadReport("pdf"));
+  elements.downloadWord.addEventListener("click", () => downloadReport("word"));
 }
 
 function applyInitialViewMode() {
@@ -438,6 +443,163 @@ function applyInitialViewMode() {
 function setFullReportVisible(visible) {
   elements.fullReport.hidden = !visible;
   elements.toggleReport.querySelector("span").textContent = visible ? "收起完整报告" : "查看完整报告";
+}
+
+async function downloadReport(format) {
+  if (!currentReport || !elements.downloadPdf || !elements.downloadWord) return;
+  const reportShell = document.querySelector(".report-shell");
+  if (!reportShell) return;
+
+  const previousHidden = elements.fullReport.hidden;
+  const previousActionDisplay = document.querySelector(".report-action")?.style.display || "";
+  const button = format === "pdf" ? elements.downloadPdf : elements.downloadWord;
+  let exportCopy = null;
+  try {
+    await ensureAuthenticated();
+    if (format === "pdf" && (!window.html2canvas || !window.jspdf?.jsPDF)) {
+      throw new Error("PDF 组件未加载，请刷新页面后重试。");
+    }
+    button.disabled = true;
+    await document.fonts?.ready;
+    exportCopy = createExportCopy(reportShell);
+
+    if (format === "pdf") {
+      const canvas = await window.html2canvas(exportCopy.shell, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imageHeight = canvas.height * pageWidth / canvas.width;
+      const image = canvas.toDataURL("image/jpeg", 0.95);
+      let offset = 0;
+      while (offset < imageHeight) {
+        if (offset > 0) pdf.addPage();
+        pdf.addImage(image, "JPEG", 0, -offset, pageWidth, imageHeight, undefined, "FAST");
+        offset += pageHeight;
+      }
+      pdf.save(`AI丢分诊断完整报告-${currentReport.summary?.subject || "学科"}.pdf`);
+      showStatus("完整 PDF 报告已下载。");
+      return;
+    }
+
+    const clone = exportCopy.shell;
+    clone.querySelectorAll("canvas").forEach((canvas) => {
+      const image = document.createElement("img");
+      image.src = canvas.toDataURL("image/png");
+      image.alt = "五类丢分维度雷达图";
+      image.style.cssText = "display:block;width:100%;height:auto;";
+      canvas.replaceWith(image);
+    });
+    const styles = await getInlineStyles();
+    const doc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>AI丢分诊断完整报告</title>${styles}<style>${getExportCss()}</style></head><body>${clone.outerHTML}</body></html>`;
+    const blob = new Blob(["\ufeff", doc], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `AI丢分诊断完整报告-${currentReport.summary?.subject || "学科"}.doc`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    showStatus("完整 Word 报告已下载。");
+  } catch (error) {
+    showStatus(error.message || "报告下载失败，请重试。", true);
+  } finally {
+    elements.fullReport.hidden = previousHidden;
+    const action = document.querySelector(".report-action");
+    if (action) action.style.display = previousActionDisplay;
+    exportCopy?.host.remove();
+    button.disabled = false;
+  }
+}
+
+async function getInlineStyles() {
+  const nodes = Array.from(document.querySelectorAll("link[rel=stylesheet], style"));
+  const chunks = await Promise.all(nodes.map(async (node) => {
+    if (node.tagName === "STYLE") return node.textContent || "";
+    const href = node.href;
+    try {
+      const response = await fetch(href, { credentials: "same-origin", cache: "no-store" });
+      return response.ok ? await response.text() : "";
+    } catch {
+      return "";
+    }
+  }));
+  return chunks.filter(Boolean).map((css) => `<style>${css}</style>`).join("\n");
+}
+
+async function ensureAuthenticated() {
+  const response = await fetch("/api/auth/me", {
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.authenticated) {
+    throw new Error("请先登录后再下载报告。");
+  }
+  return data.user;
+}
+
+function createExportCopy(source) {
+  const host = document.createElement("div");
+  host.className = "report-export-host";
+  host.style.cssText = "position:absolute;left:-100000px;top:0;width:794px;min-height:1px;overflow:visible;background:#fff;";
+  const style = document.createElement("style");
+  style.textContent = getExportCss();
+  const shell = source.cloneNode(true);
+  shell.classList.add("report-export-copy");
+  shell.querySelector("#full-report")?.removeAttribute("hidden");
+  shell.querySelector(".report-action")?.remove();
+  shell.querySelector(".status-message")?.remove();
+  shell.querySelectorAll(".scan-corner").forEach((node) => node.remove());
+  source.querySelectorAll("canvas").forEach((canvas, index) => {
+    const target = shell.querySelectorAll("canvas")[index];
+    const context = target?.getContext("2d");
+    if (context) context.drawImage(canvas, 0, 0);
+  });
+  host.append(style, shell);
+  document.body.appendChild(host);
+  return { host, shell };
+}
+
+function getExportCss() {
+  return `
+    .report-export-host { color: #07142d; }
+    .report-export-copy *,
+    .report-export-copy *::before,
+    .report-export-copy *::after {
+      animation: none !important;
+      transition: none !important;
+      opacity: 1 !important;
+      filter: none !important;
+    }
+    .report-export-copy { width: 794px !important; max-width: none !important; min-height: 0 !important; height: auto !important; overflow: visible !important; padding: 18px !important; border: 1px solid #b9d3fb !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; }
+    .report-export-copy .report-grid { grid-template-columns: 300px minmax(0, 1fr) !important; gap: 12px !important; }
+    .report-export-copy #radar-canvas { width: 100% !important; max-width: none !important; height: auto !important; }
+    .report-export-copy .dimension-head,
+    .report-export-copy .dimension-row { grid-template-columns: minmax(0, .9fr) minmax(0, 1.15fr) minmax(0, .82fr) minmax(0, .9fr) !important; column-gap: 6px !important; padding-left: 6px !important; padding-right: 6px !important; min-width: 0 !important; overflow: hidden !important; }
+    .report-export-copy .dimension-card,
+    .report-export-copy .dimension-name,
+    .report-export-copy .severity,
+    .report-export-copy .priority { min-width: 0 !important; overflow-wrap: anywhere !important; word-break: break-word !important; }
+    .report-export-copy .percent-wrap { grid-template-columns: 42px minmax(0, 1fr) !important; gap: 5px !important; }
+    .report-export-copy .percent-value { font-size: 18px !important; }
+    .report-export-copy .table-scroll { overflow: visible !important; }
+    .report-export-copy .table-scroll table { width: 100% !important; min-width: 0 !important; table-layout: fixed !important; }
+    .report-export-copy .table-scroll th,
+    .report-export-copy .table-scroll td { padding: 6px 4px !important; font-size: 10px !important; line-height: 1.35 !important; word-break: break-word !important; white-space: normal !important; }
+    .report-export-copy .full-report { margin-top: 14px !important; animation: none !important; opacity: 1 !important; transform: none !important; }
+    .report-export-copy .full-report-grid { gap: 10px !important; }
+    .report-export-copy .full-report article { padding: 12px 14px !important; border-radius: 8px !important; }
+    .report-export-copy .full-report p,
+    .report-export-copy .full-report ul { font-size: 12px !important; line-height: 1.55 !important; }
+    .report-export-copy .professional-sections { gap: 10px !important; }
+  `;
 }
 
 function addSelectedFiles(files) {

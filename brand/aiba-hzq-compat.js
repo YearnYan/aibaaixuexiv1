@@ -22,8 +22,30 @@
   const compatibilityApi = {
     init() {},
     async checkCredit() {
-      // 子站实际额度由各自后端校验；兼容层只保持旧页面调用链可用。
-      return true;
+      try {
+        const home = resolveHomeUrl();
+        const response = await fetch(new URL('/api/auth/me', home), {
+          credentials: 'include',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.authenticated || !payload.user) {
+          const loginUrl = new URL(home.href);
+          loginUrl.searchParams.set('login', '1');
+          global.location.assign(loginUrl.href);
+          return false;
+        }
+        if (Number(payload.user.points) < 1) {
+          const redeemUrl = new URL(home.href);
+          redeemUrl.searchParams.set('redeem', '1');
+          global.location.assign(redeemUrl.href);
+          return false;
+        }
+        return true;
+      } catch (_error) {
+        return false;
+      }
     },
     getUsageToken() {
       return '';

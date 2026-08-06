@@ -223,6 +223,22 @@ body {
   color: #f3d36b !important;
 }
 
+/* 备课器结果区的“AI继续调整”与下载 Word 使用同一套深绿色按钮样式。 */
+.app-shell > .result-panel > .result-header .result-actions .secondary-button {
+  min-height: 38px;
+  padding: 0 15px;
+  color: #164c3c !important;
+  border-color: #86b69c !important;
+  background: #e9f3ed !important;
+  font-weight: 700;
+}
+
+.app-shell > .result-panel > .result-header .result-actions .secondary-button:hover:not(:disabled) {
+  color: #164c3c !important;
+  border-color: #c9a63d !important;
+  background: #ffffff !important;
+}
+
 /* AI 审题器使用深色工作区，顶部两级导航需要单独保持清晰对比度。 */
 body:has(.app-header) .aiba-subsite-nav.site-nav {
   color: #f5f7f8 !important;
@@ -292,52 +308,4 @@ body:has(.app-header) .app-header .brand-divider {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* AI备课器使用淡绿色背景，让备课工作台与教学场景保持一致。 */
-:root {
-  --aiba-paper: #eaf6ee !important;
-  --aiba-paper-deep: #d8eee0 !important;
-  --aiba-paper-soft: #f4fbf6 !important;
-  --aiba-line: #c6dfcf !important;
-  --aiba-muted: #557266 !important;
-  --aiba-ink: #1f3a2c !important;
-}
-
-html,
-body {
-  background: #eaf6ee !important;
-}
-
-body {
-  background:
-    radial-gradient(circle at 8% 0%, rgba(85, 170, 112, 0.13), transparent 24rem),
-    linear-gradient(135deg, #f4fbf6 0%, #e6f3ea 100%) !important;
-}
-
-:where(.app-shell, .workspace, .page-shell, main) {
-  background: transparent !important;
-}
-
-:where(.card, .panel, .workspace, .control-panel, .result-panel, .form-card, .upload-card, .result-card, .analysis-card, .settings-card) {
-  border-color: #c6dfcf !important;
-  background-color: #f8fcf9 !important;
-  box-shadow: 0 14px 34px rgba(39, 99, 61, 0.1) !important;
-}
-
-body:has(.app-header) .aiba-subsite-nav.site-nav,
-body:has(.app-header) .app-header {
-  color: #1f3a2c !important;
-  background: #eaf6ee !important;
-  border-bottom-color: #c6dfcf !important;
-}
-
-body:has(.app-header) .aiba-subsite-nav .brand,
-body:has(.app-header) .aiba-subsite-nav .brand strong {
-  color: #1f3a2c !important;
-}
-
-body:has(.app-header) .aiba-subsite-nav .brand small,
-body:has(.app-header) .app-header .brand-block p {
-  color: #557266 !important;
 }

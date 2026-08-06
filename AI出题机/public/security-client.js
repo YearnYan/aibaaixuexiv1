@@ -1,7 +1,24 @@
 ﻿// 前端安全请求封装：用于请求令牌与自动重试
 (function initSecurityClient(global) {
-  const API_BASE = '/api';
+  function resolveApiBase() {
+    const pathname = String(global.location.pathname || '/');
+    const routeEnd = pathname.indexOf('/', 1);
+    const routePrefix = routeEnd > 0 ? pathname.slice(0, routeEnd) : pathname;
+    if (routePrefix && routePrefix !== '/' && !/\.[^/]+$/u.test(routePrefix)) {
+      return `${routePrefix}/api`;
+    }
+    return '/api';
+  }
+
+  const API_BASE = resolveApiBase();
   const BOOTSTRAP_URL = `${API_BASE}/security/bootstrap`;
+
+  function resolveApiUrl(url) {
+    if (typeof url !== 'string' || API_BASE === '/api' || !url.startsWith('/api')) {
+      return url;
+    }
+    return `${API_BASE}${url.slice('/api'.length)}`;
+  }
 
   const state = {
     requestToken: '',
@@ -63,9 +80,10 @@
   }
 
   async function apiFetch(url, options = {}, retry = true) {
+    const resolvedUrl = resolveApiUrl(url);
     const isProtectedApi = typeof url === 'string'
-      && url.startsWith(API_BASE)
-      && !url.startsWith(BOOTSTRAP_URL);
+      && resolvedUrl.startsWith(API_BASE)
+      && !resolvedUrl.startsWith(BOOTSTRAP_URL);
 
     const headers = {
       ...(options.headers || {}),
@@ -79,7 +97,7 @@
       }
     }
 
-    let resp = await global.fetch(url, {
+    let resp = await global.fetch(resolvedUrl, {
       ...options,
       credentials: 'same-origin',
       headers
@@ -99,7 +117,7 @@
       if (state.requestToken) {
         retryHeaders['X-CX-Request-Token'] = state.requestToken;
       }
-      resp = await global.fetch(url, {
+      resp = await global.fetch(resolvedUrl, {
         ...options,
         credentials: 'same-origin',
         headers: retryHeaders

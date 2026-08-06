@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const fsPromises = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require('playwright-core');
 const {
@@ -246,13 +247,45 @@ async function buildReportHtml(input) {
 function findChromeExecutable() {
   const candidates = [
     process.env.PDF_CHROME_PATH,
+    process.env.CHROME_BIN,
+    process.env.GOOGLE_CHROME_BIN,
+    process.env.CHROMIUM_BIN,
+    process.env.CHROMIUM_PATH,
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Google', 'Chrome', 'Application', 'chrome.exe'),
     '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
-  ].filter(Boolean);
-  return candidates.find((candidate) => fs.existsSync(candidate)) || '';
+    '/snap/bin/chromium',
+  ];
+
+  try {
+    candidates.push(chromium.executablePath());
+  } catch (_error) {
+    // playwright-core 未配置浏览器时 executablePath 可能直接抛错。
+  }
+
+  const browserRoot = process.env.PLAYWRIGHT_BROWSERS_PATH
+    || path.join(os.homedir(), '.cache', 'ms-playwright');
+  if (browserRoot && fs.existsSync(browserRoot)) {
+    for (const folder of fs.readdirSync(browserRoot, { withFileTypes: true })) {
+      if (!folder.isDirectory() || !/^chromium(?:_|-)/u.test(folder.name)) continue;
+      const base = path.join(browserRoot, folder.name);
+      candidates.push(
+        path.join(base, 'chrome-linux', 'chrome'),
+        path.join(base, 'chrome-win', 'chrome.exe'),
+        path.join(base, 'chrome-win64', 'chrome.exe'),
+      );
+    }
+  }
+
+  return candidates
+    .filter((candidate, index, list) => candidate && list.indexOf(candidate) === index)
+    .find((candidate) => fs.existsSync(candidate)) || '';
 }
 
 async function generatePdf(input) {

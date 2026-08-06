@@ -7,7 +7,9 @@ const srcDir = path.join(projectRoot, 'src');
 const distDir = path.join(projectRoot, 'dist');
 const assetsDir = path.join(distDir, 'assets');
 const navSource = path.resolve(projectRoot, '..', 'brand', 'aiba-subsite-nav.js');
+const navStylesSource = path.resolve(projectRoot, '..', 'brand', 'aiba-subsite-nav.css');
 const themeSource = path.resolve(projectRoot, '..', 'brand', 'aiba-brand.css');
+const logoSource = path.resolve(projectRoot, '..', 'platform', 'assets', 'logo.jpg');
 const templatePath = path.join(srcDir, 'index.html');
 const outputHtmlPath = path.join(distDir, 'index.html');
 const entryPoint = path.join(srcDir, 'app-entry.js');
@@ -83,8 +85,11 @@ function pickOutputAssets(metafile) {
 async function buildFrontend() {
   await fs.promises.rm(distDir, { recursive: true, force: true });
   await fs.promises.mkdir(assetsDir, { recursive: true });
+  // 导航脚本依赖同目录的样式和 Logo，必须随构建产物一起发布。
   await fs.promises.copyFile(navSource, path.join(distDir, 'aiba-subsite-nav.js'));
+  await fs.promises.copyFile(navStylesSource, path.join(distDir, 'aiba-subsite-nav.css'));
   await fs.promises.copyFile(themeSource, path.join(distDir, 'aiba-brand.css'));
+  await fs.promises.copyFile(logoSource, path.join(distDir, 'aiba-logo.jpg'));
 
   const buildResult = await esbuild.build({
     entryPoints: [entryPoint],

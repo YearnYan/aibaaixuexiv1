@@ -4,6 +4,7 @@ import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -13,6 +14,7 @@ const host = process.env.BIND_HOST || '127.0.0.1';
 const backendPort = readPort(process.env.PLATFORM_BACKEND_PORT, 5180);
 const backendOrigin = new URL(process.env.PLATFORM_API_ORIGIN || `http://127.0.0.1:${backendPort}`);
 const shouldStartBackend = !process.env.PLATFORM_API_ORIGIN;
+const platformInternalToken = process.env.PLATFORM_INTERNAL_TOKEN || randomBytes(32).toString('hex');
 const toolBindHost = process.env.TOOL_BIND_HOST || '127.0.0.1';
 const toolAssetVersion = process.env.TOOL_ASSET_VERSION || '20260804-proxy-fix';
 
@@ -80,6 +82,7 @@ if (shouldStartBackend) {
       ...process.env,
       PORT: String(backendPort),
       BIND_HOST: '127.0.0.1',
+      PLATFORM_INTERNAL_TOKEN: platformInternalToken,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
@@ -128,6 +131,8 @@ server.listen(port, host, () => {
 });
 
 function proxyApiRequest(request, response) {
+  const forwardedHost = String(request.headers['x-forwarded-host'] || request.headers.host || '');
+  const forwardedProto = String(request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http'));
   const origin = String(request.headers.origin || '');
   const requestHost = String(request.headers.host || '').split(':')[0].toLowerCase();
   let allowedOrigin = '';
@@ -163,6 +168,8 @@ function proxyApiRequest(request, response) {
     headers: {
       ...request.headers,
       host: backendOrigin.host,
+      'x-forwarded-host': forwardedHost,
+      'x-forwarded-proto': forwardedProto,
     },
   }, (upstreamResponse) => {
     response.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
@@ -183,6 +190,8 @@ function proxyApiRequest(request, response) {
 
 async function proxyToolRequest(request, response, requestUrl, tool, routePrefix) {
   try {
+    const forwardedHost = String(request.headers['x-forwarded-host'] || request.headers.host || '');
+    const forwardedProto = String(request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http'));
     // 子站入口必须保留末尾斜杠，否则 HTML 中的相对资源会被浏览器解析到主站根目录。
     const decodedPathname = decodeURIComponent(requestUrl.pathname);
     if ((request.method === 'GET' || request.method === 'HEAD') && decodedPathname === routePrefix) {
@@ -199,12 +208,25 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
 
     const suffix = decodedPathname.slice(routePrefix.length) || '/';
     const upstreamPath = (suffix.startsWith('/') ? suffix : '/' + suffix) + requestUrl.search;
+    const billable = isBillableToolRequest(request.method, suffix, tool.name);
+    let platformContext = null;
+    if (billable) {
+      const charge = await consumePlatformUsage(request, tool.name);
+      if (!charge.ok) {
+        sendJson(response, charge.status, charge.payload);
+        return;
+      }
+      platformContext = charge.user;
+    } else if (suffix.startsWith('/api/')) {
+      platformContext = await readPlatformUser(request);
+    }
     const upstreamHeaders = { ...request.headers };
     delete upstreamHeaders.connection;
     delete upstreamHeaders.upgrade;
     delete upstreamHeaders['proxy-connection'];
     // 代理需要读取并重写文本内容，禁止上游返回压缩字节，避免 UTF-8 解码产生乱码。
     upstreamHeaders['accept-encoding'] = 'identity';
+    applyPlatformHeaders(upstreamHeaders, platformContext, tool.name);
     const upstream = http.request({
       hostname: '127.0.0.1',
       port: tool.port,
@@ -214,7 +236,8 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
         ...upstreamHeaders,
         host: '127.0.0.1:' + tool.port,
         connection: 'keep-alive',
-        'x-forwarded-host': request.headers.host || '',
+        'x-forwarded-host': forwardedHost,
+        'x-forwarded-proto': forwardedProto,
       },
     }, (upstreamResponse) => {
       const contentType = String(upstreamResponse.headers['content-type'] || '').toLowerCase();
@@ -252,6 +275,17 @@ async function proxyToolRequest(request, response, requestUrl, tool, routePrefix
       }
     });
 
+    if (billable) {
+      upstream.once('response', (upstreamResponse) => {
+        if ((upstreamResponse.statusCode || 500) >= 400) {
+          void refundPlatformUsage(request, tool.name);
+        }
+      });
+      upstream.once('error', () => {
+        void refundPlatformUsage(request, tool.name);
+      });
+    }
+
     request.pipe(upstream);
   } catch (error) {
     console.error('[' + tool.name + '] 启动失败：' + error.message);
@@ -268,6 +302,98 @@ async function ensureToolRunning(tool) {
   await waitForTool(tool);
 }
 
+function isBillableToolRequest(method, suffix, siteId) {
+  if (method !== 'POST' || siteId === '教辅资料生成器') return false;
+  const pathname = String(suffix || '').split('?', 1)[0];
+  if (!pathname.startsWith('/api/')) return false;
+  if (/^\/api\/(?:auth|points|admin|health|config)(?:\/|$)/u.test(pathname)) return false;
+  if (/^\/api\/export\//u.test(pathname)) return false;
+  return /^\/api\/(?:analyze|generate|chat|site\/|exam\/|training\/questions|training\/session|render\/)/u.test(pathname);
+}
+
+async function consumePlatformUsage(request, siteId) {
+  const result = await requestBackendJson('/api/internal/platform/consume', {
+    method: 'POST',
+    headers: {
+      cookie: request.headers.cookie || '',
+      'x-platform-internal-token': platformInternalToken,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ siteId, requestId: randomUUID() }),
+  });
+  return result;
+}
+
+async function refundPlatformUsage(request, siteId) {
+  await requestBackendJson('/api/internal/platform/refund', {
+    method: 'POST',
+    headers: {
+      cookie: request.headers.cookie || '',
+      'x-platform-internal-token': platformInternalToken,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ siteId }),
+  }).catch(() => {});
+}
+
+async function readPlatformUser(request) {
+  const result = await requestBackendJson('/api/auth/me', {
+    method: 'GET',
+    headers: { cookie: request.headers.cookie || '' },
+  });
+  return result.ok && result.payload?.authenticated ? result.payload.user : null;
+}
+
+function applyPlatformHeaders(headers, user, siteId) {
+  if (!user) return;
+  headers['x-platform-internal-token'] = platformInternalToken;
+  headers['x-platform-user-id'] = String(user.id || '');
+  headers['x-platform-username'] = encodeURIComponent(String(user.username || ''));
+  headers['x-platform-user-role'] = user.role === 'admin' ? 'admin' : 'user';
+  headers['x-platform-user-points'] = String(Math.max(0, Math.floor(Number(user.points) || 0)));
+  headers['x-platform-points-per-use'] = String(getConfiguredUsageCost(siteId));
+}
+
+function getConfiguredUsageCost(siteId) {
+  const configPath = path.join(rootDir, '教辅资料生成器', 'data', 'ai-config.json');
+  try {
+    const config = JSON.parse(readFileSync(configPath, 'utf8'));
+    const sites = Array.isArray(config?.sites) ? config.sites : [];
+    const site = sites.find((item) => item?.id === siteId);
+    const cost = Number(site?.pointsPerUse);
+    return Number.isFinite(cost) && cost >= 1 ? Math.min(100000, Math.floor(cost)) : 1;
+  } catch {
+    return 1;
+  }
+}
+
+function requestBackendJson(requestPath, options = {}) {
+  return new Promise((resolve, reject) => {
+    const headers = { ...(options.headers || {}), host: backendOrigin.host };
+    const upstream = http.request({
+      protocol: backendOrigin.protocol,
+      hostname: backendOrigin.hostname,
+      port: backendOrigin.port,
+      path: requestPath,
+      method: options.method || 'GET',
+      headers,
+    }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => {
+        let payload = {};
+        try { payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { /* 非 JSON 响应按空对象处理 */ }
+        const ok = response.statusCode >= 200 && response.statusCode < 300;
+        resolve({ ok, status: response.statusCode || 502, payload, user: payload.user || null });
+      });
+      response.on('error', reject);
+    });
+    upstream.once('error', reject);
+    if (options.body) upstream.write(options.body);
+    upstream.end();
+  });
+}
+
 function rewriteToolContent(buffer, routePrefix, contentType = '') {
   const text = buffer.toString('utf8');
   const quotePattern = '["' + "'" + String.fromCharCode(96) + ']';
@@ -276,7 +402,9 @@ function rewriteToolContent(buffer, routePrefix, contentType = '') {
   // CSS 的 url() 单独处理；JavaScript 只改写 API 字符串，避免误伤压缩
   // bundle 中的正则表达式和动态导入路径。
   const cssUrlPathPattern = /((?:url\(\s*))\/(?!\/)(?=[A-Za-z0-9_.-])/g;
-  const jsApiPathPattern = new RegExp('(' + quotePattern + ')\\/api(?=[\\/?#])', 'g');
+  // 同时覆盖 `/api` 基址和 `/api/...` 路径；原规则漏掉了基址后紧跟引号的情况。
+  // 认证、积分和后台接口属于主平台，不能改写到子站端口；其余 API 才转发到当前子站。
+  const jsApiPathPattern = new RegExp('(' + quotePattern + ')\\/api(?!(?:\\/auth|\\/points|\\/admin)(?:[\\/?#]|' + quotePattern + '|$))(?=' + quotePattern + '|[\\/?#])', 'g');
   if (/text\/html/u.test(contentType)) {
     const rewrittenHtml = text.replace(rootPathPattern, '$1' + routePrefix + '/');
     // 子站资源文件名可能在浏览器中缓存过旧的代理结果，版本参数确保修复后立即生效。
@@ -335,7 +463,9 @@ function startToolProcess(tool) {
       ...process.env,
       ...loadPlatformAiEnvironment(tool.name),
       ...tool.env,
-      AIBA_HOME_URL: process.env.AIBA_HOME_URL || `http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port}/`,
+      // 不注入固定本机地址，让 SSR 子站根据反向代理转发的域名动态生成主页链接。
+      AIBA_HOME_URL: process.env.AIBA_HOME_URL || '',
+      PLATFORM_INTERNAL_TOKEN: platformInternalToken,
       PORT: String(tool.port),
       HOST: toolBindHost,
       BIND_HOST: toolBindHost,

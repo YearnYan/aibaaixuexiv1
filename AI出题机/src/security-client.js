@@ -9,6 +9,15 @@
     const { protocol, hostname, port } = global.location;
     if (protocol === 'file:') return 'http://127.0.0.1:5100/api';
 
+    // 平台以 /AI出题机/ 子路径代理本站时，API 也必须跟随同一前缀；
+    // 否则 /api 会被主站接收，令牌初始化会得到错误响应。
+    const pathname = String(global.location.pathname || '/');
+    const routeEnd = pathname.indexOf('/', 1);
+    const routePrefix = routeEnd > 0 ? pathname.slice(0, routeEnd) : pathname;
+    if (routePrefix && routePrefix !== '/' && !/\.[^/]+$/u.test(routePrefix)) {
+      return `${routePrefix}/api`;
+    }
+
     // 页面由子站自己的 HTTP 服务提供时，/api 必须保持同源；
     // 只有直接双击 file:// 页面时才回退到传统本地端口。
     return API_PATH;
