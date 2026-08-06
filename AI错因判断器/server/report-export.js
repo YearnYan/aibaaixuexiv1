@@ -260,6 +260,11 @@ function findChromeExecutable() {
     '/usr/bin/google-chrome-stable',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
+    '/usr/bin/headless_shell',
+    '/usr/lib/chromium/headless_shell',
+    '/usr/lib/chromium-browser/headless_shell',
+    '/usr/lib64/chromium/headless_shell',
+    '/usr/lib64/chromium-browser/headless_shell',
     '/snap/bin/chromium',
   ];
 
